@@ -2,18 +2,20 @@
   <div class="container">
     <h1>My Vue Counter</h1>
     <button @click="increment">Count is: {{ count }}</button>
-    <LeafletMap />
+    <button @click="console.log('waff'); $refs.myMap.updateTrainLocations()">Waff!</button>
+    <LeafletMap ref="myMap"/>
   </div>
 </template>
 
 <script>
 import useCounter from './composables/useCounter.js'
-import LeafletMap from './components/LeafletMap.vue'
+import LeafletMap from './components/leafletMap.vue'
 
 export default {
   components: { LeafletMap },
   setup() {
     const { count, increment, double } = useCounter()
+    const setMarker = LeafletMap.setMarker
     return { count, increment, double }
   }
 }

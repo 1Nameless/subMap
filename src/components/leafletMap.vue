@@ -11,29 +11,39 @@ import L from 'leaflet'
 export default {
   name: 'LeafletMap',
   setup() {
-    const mapContainer = ref(null)
+    const mapContainer = ref(0)
 
-    
+    let map
 
+    function setMarker(latitude, longitude, name) {
+        L.marker([latitude, longitude]).addTo(map)
+            .bindPopup(name)
+            .openPopup()
+    }
+
+        
     onMounted(() => {
     
-        const map = L.map(mapContainer.value).setView([49.45165265689441, 11.076346371026073], 13)
+        map = L.map(mapContainer.value).setView([49.45165265689441, 11.076346371026073], 13)
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         }).addTo(map)
 
-        L.marker([49.45165265689441, 11.076346371026073]).addTo(map)
-            .bindPopup('Nürnberg')
-            .openPopup()
 
         getAllStops()
 
-        getAllTrains()
+        updateTrainLocations()
 
+        
+        timer = setInterval(() => {
+            updateTrainLocations()
+        }, 1000)
+        
 
+    })
 
-        function getAllStops(){
+    function getAllStops(){
             //get haltestelle by distance (0 0 appears to be everything)
             //const url = "https://start.vag.de/dm/api/v1/haltestellen/UBahn/location?lon=0&lat=0&radius=100"
 
@@ -74,14 +84,22 @@ export default {
                         
                         L.marker([stop.Latitude, stop.Longitude]).addTo(map)
                             .bindPopup(stop.Haltestellenname + "\n" + stop.VAGKennung)
-                            .openPopup()
                         
                     })
                 })
 
         }
 
-        function getAllTrains(){
+    let trainMarkers = []
+
+    function updateTrainLocations(){
+
+        //clear trains
+        trainMarkers.filter((e) => {
+            e !== null
+        } )
+        console.log(trainMarkers)
+
             const url = "https://start.vag.de/dm/api/v1/fahrten/UBahn?timespan=1"
 
             let currenttime = null
@@ -114,15 +132,15 @@ export default {
                                 for (let i = 0; i < route.Fahrtverlauf.length; i++) {
                                 const stop = route.Fahrtverlauf[i];
 
-
-                                if(currenttime <= stop.AbfahrtszeitIst){
+                                if(typeof stop.AbfahrtszeitIst === 'undefined' || currenttime <= stop.AbfahrtszeitIst){
 
                                     if(i == 0 || typeof stop.AnkunftszeitIst === 'undefined'){
                                         //erster stop
                                         return {
                                             stations: stop,
                                             distance: 0,
-                                            line: route.Linienname
+                                            line: route.Linienname,
+                                            fahrtnummer: fahrtnummer
                                         }
 
                                     }
@@ -131,7 +149,8 @@ export default {
                                         return {
                                             stations: stop,
                                             distance: 0,
-                                            line: route.Linienname
+                                            line: route.Linienname,
+                                            fahrtnummer: fahrtnummer
                                         }
                                     }
                                     else{
@@ -151,7 +170,8 @@ export default {
                                         return {
                                             stations: stations,
                                             distance: (c - lastDeparture) / (ankunft - lastDeparture),
-                                            line: route.Linienname
+                                            line: route.Linienname,
+                                            fahrtnummer: fahrtnummer
                                         }
 
                                     }
@@ -159,21 +179,27 @@ export default {
                                 }
                                 
                                 }
+
+                                console.log("HOW???")
+                                console.log(route)
+
+
                             })
                             .then(trainLocation => {
-                                console.log(trainLocation)
 
-                                if(trainLocation.distance === 0){
-                                    // at station
-                                    L.circle([trainLocation.stations.Latitude, trainLocation.stations.Longitude], {radius: 200, color: "#3388ff"}).addTo(map);
+                                //remove previous marker from same train
+
+                                for (let i = 0; i < trainMarkers.length; i++) {
+                                    if(typeof trainMarkers[i] !== 'undefined' && trainMarkers[i].fahrtnummer === trainLocation.fahrtnummer){
+                                        map.removeLayer(trainMarkers[i].marker);
+                                        delete trainMarkers[i]
+                                    }
+                                    
                                 }
-                                else{
-                                    // between two stations
-                                    let latitude = (trainLocation.stations[0].Latitude + trainLocation.stations[1].Latitude) / 2
-                                    let longitude = (trainLocation.stations[0].Longitude + trainLocation.stations[1].Longitude) / 2
 
+                                
 
-                                    let color = "#000000"
+                                let color = "#000000"
                                     if(trainLocation.line === "U1"){
                                         color = "#0269b6"
                                     }
@@ -184,7 +210,40 @@ export default {
                                         color = "#32b7bc"
                                     }
 
-                                    L.circle([latitude, longitude], {radius: 200, color: color}).addTo(map);
+                                if(trainLocation.distance === 0){
+                                    // at station
+
+                                    let c = L.circle([trainLocation.stations.Latitude, trainLocation.stations.Longitude], {radius: 200, color: color})
+                                        .bindPopup(trainLocation.line)
+
+                                    c.addTo(map)
+                                    
+                                    trainMarkers.push({
+                                        fahrtnummer: trainLocation.fahrtnummer,
+                                        marker: c
+                                    })
+
+                                }
+                                else{
+                                    // between two stations
+                                    let latitudeDifference = trainLocation.stations[0].Latitude - trainLocation.stations[1].Latitude
+                                    let latitude = trainLocation.stations[1].Latitude + latitudeDifference * trainLocation.distance
+
+
+                                    let longitudeDifference = trainLocation.stations[0].Longitude - trainLocation.stations[1].Longitude
+                                    let longitude = trainLocation.stations[1].Longitude + longitudeDifference * trainLocation.distance
+
+                                    let c = L.circle([latitude, longitude], {radius: 200, color: color})
+                                        .bindPopup(trainLocation.line)
+
+                                    
+                                    c.addTo(map)
+                                    
+                                    trainMarkers.push({
+                                        fahrtnummer: trainLocation.fahrtnummer,
+                                        marker: c
+                                    })
+
                                 }
 
                             })
@@ -195,10 +254,10 @@ export default {
 
         }
 
-    })
-
     return {
-      mapContainer
+      mapContainer,
+      setMarker,
+      updateTrainLocations
     }
   }
 }
