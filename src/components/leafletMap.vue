@@ -36,7 +36,7 @@ export default {
         updateTrainLocations()
 
         
-        timer = setInterval(() => {
+        let timer = setInterval(() => {
             updateTrainLocations()
         }, 1000)
         
@@ -95,10 +95,7 @@ export default {
     function updateTrainLocations(){
 
         //clear trains
-        trainMarkers.filter((e) => {
-            e !== null
-        } )
-        console.log(trainMarkers)
+        //trainMarkers.filter((e) => { e !== null } )
 
             const url = "https://start.vag.de/dm/api/v1/fahrten/UBahn?timespan=1"
 
@@ -113,7 +110,7 @@ export default {
                 })
                 .then(data => {
                     currenttime = data.Metadata.Timestamp
-                    console.log(currenttime)
+                    //console.log(currenttime)
                     return data.Fahrten
                 })
                 .then(fahrten => {
@@ -129,6 +126,10 @@ export default {
                                 return response.json()
                             })
                             .then(route => {
+                                if(route.Richtungstext === "Bärenschanze"){
+                                    console.log(route)
+                                }
+
                                 for (let i = 0; i < route.Fahrtverlauf.length; i++) {
                                 const stop = route.Fahrtverlauf[i];
 
@@ -140,7 +141,8 @@ export default {
                                             stations: stop,
                                             distance: 0,
                                             line: route.Linienname,
-                                            fahrtnummer: fahrtnummer
+                                            fahrtnummer: fahrtnummer,
+                                            richtung: route.Richtungstext
                                         }
 
                                     }
@@ -150,7 +152,8 @@ export default {
                                             stations: stop,
                                             distance: 0,
                                             line: route.Linienname,
-                                            fahrtnummer: fahrtnummer
+                                            fahrtnummer: fahrtnummer,
+                                            richtung: route.Richtungstext
                                         }
                                     }
                                     else{
@@ -171,7 +174,8 @@ export default {
                                             stations: stations,
                                             distance: (c - lastDeparture) / (ankunft - lastDeparture),
                                             line: route.Linienname,
-                                            fahrtnummer: fahrtnummer
+                                            fahrtnummer: fahrtnummer,
+                                            richtung: route.Richtungstext
                                         }
 
                                     }
@@ -189,13 +193,15 @@ export default {
 
                                 //remove previous marker from same train
 
+                                let previousMarker = null
                                 for (let i = 0; i < trainMarkers.length; i++) {
                                     if(typeof trainMarkers[i] !== 'undefined' && trainMarkers[i].fahrtnummer === trainLocation.fahrtnummer){
-                                        map.removeLayer(trainMarkers[i].marker);
-                                        delete trainMarkers[i]
+                                        previousMarker = trainMarkers[i];
                                     }
                                     
                                 }
+
+                                
 
                                 
 
@@ -212,16 +218,22 @@ export default {
 
                                 if(trainLocation.distance === 0){
                                     // at station
-
-                                    let c = L.circle([trainLocation.stations.Latitude, trainLocation.stations.Longitude], {radius: 200, color: color})
-                                        .bindPopup(trainLocation.line)
-
-                                    c.addTo(map)
                                     
-                                    trainMarkers.push({
-                                        fahrtnummer: trainLocation.fahrtnummer,
-                                        marker: c
-                                    })
+                                    if(previousMarker === null){
+                                        let c = L.circle([trainLocation.stations.Latitude, trainLocation.stations.Longitude], {radius: 200, color: color})
+                                            .bindPopup(trainLocation.line + " richtung: " + trainLocation.richtung)
+
+                                        c.addTo(map)
+                                        
+                                        trainMarkers.push({
+                                            fahrtnummer: trainLocation.fahrtnummer,
+                                            marker: c
+                                        })
+                                    }
+                                    else{
+                                        previousMarker.marker.setLatLng([trainLocation.stations.Latitude, trainLocation.stations.Longitude])
+                                    }
+                                    
 
                                 }
                                 else{
@@ -233,16 +245,22 @@ export default {
                                     let longitudeDifference = trainLocation.stations[0].Longitude - trainLocation.stations[1].Longitude
                                     let longitude = trainLocation.stations[1].Longitude + longitudeDifference * trainLocation.distance
 
-                                    let c = L.circle([latitude, longitude], {radius: 200, color: color})
-                                        .bindPopup(trainLocation.line)
+                                    if(previousMarker === null){
+                                        let c = L.circle([latitude, longitude], {radius: 200, color: color})
+                                            .bindPopup(trainLocation.line + " richtung: " + trainLocation.richtung)
 
                                     
-                                    c.addTo(map)
+                                        c.addTo(map)
+                                        
+                                        trainMarkers.push({
+                                            fahrtnummer: trainLocation.fahrtnummer,
+                                            marker: c
+                                        })
+                                    }
+                                    else{
+                                        previousMarker.marker.setLatLng([latitude, longitude])
+                                    }
                                     
-                                    trainMarkers.push({
-                                        fahrtnummer: trainLocation.fahrtnummer,
-                                        marker: c
-                                    })
 
                                 }
 
