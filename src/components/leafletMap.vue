@@ -36,12 +36,24 @@ export default {
         updateTrainLocations()
 
         
-        let timer = setInterval(() => {
+
+        
+        setInterval(() => {
             updateTrainLocations()
-        }, 1000)
+        }, 1000 * 5)
+
+
+        setInterval(() => {
+            drawTrains()
+        }, 1000 / 30)
         
 
     })
+
+    function test(){
+        updateTrainLocations()
+        drawTrains()
+    }
 
     function getAllStops(){
             //get haltestelle by distance (0 0 appears to be everything)
@@ -81,9 +93,16 @@ export default {
                 .then(subwayStops => {
                     
                     subwayStops.forEach(stop =>{
-                        
-                        L.marker([stop.Latitude, stop.Longitude]).addTo(map)
+
+                        let radius = 0.001
+
+                        let bounds = [[stop.Latitude - radius * 0.6, stop.Longitude - radius], [stop.Latitude + radius * 0.6, stop.Longitude + radius]]
+
+                        L.rectangle(bounds, {color: "#666666", weight: 1}).addTo(map)
                             .bindPopup(stop.Haltestellenname + "\n" + stop.VAGKennung)
+
+                        //L.marker([stop.Latitude, stop.Longitude]).addTo(map)
+                        //    .bindPopup(stop.Haltestellenname + "\n" + stop.VAGKennung)
                         
                     })
                 })
@@ -91,6 +110,90 @@ export default {
         }
 
     let trainMarkers = []
+
+
+    /*
+        fahrtnummer
+        stations
+        line
+        direction
+        marker
+    */
+    let trains = []
+
+    function drawTrains(){
+
+
+        let currenttime = new Date().getTime()
+        
+
+
+
+        trains.forEach(train => {
+
+            let distance = 0
+            if(train.distance !== 0){
+                let lastDeparture = new Date(train.stations[1].AbfahrtszeitIst).getTime()
+                let arrival = new Date(train.stations[0].AnkunftszeitIst).getTime()
+                distance = (currenttime - lastDeparture) / (arrival - lastDeparture)
+            }
+            if(distance > 1){
+                distance = 1
+            }
+            
+
+            let color = "#000000"
+            if (train.line === "U1") {
+                color = "#0269b6"
+            }
+            else if (train.line === "U2") {
+                color = "#e30713"
+            }
+            else if (train.line === "U3") {
+                color = "#32b7bc"
+            }
+            
+
+
+            let latitude = null
+            let longitude = null
+
+
+            if(distance === 0){
+                // at station
+
+                latitude = train.stations.Latitude
+                longitude = train.stations.Longitude
+            }
+            else{
+                // between two stations
+                let latitudeDifference = train.stations[0].Latitude - train.stations[1].Latitude
+                latitude = train.stations[1].Latitude + latitudeDifference * distance
+
+
+                let longitudeDifference = train.stations[0].Longitude - train.stations[1].Longitude
+                longitude = train.stations[1].Longitude + longitudeDifference * distance
+            }
+
+
+            if(typeof train.marker !== 'undefined' && train.marker !== null){
+                // move marker from existing train
+                train.marker.setLatLng([latitude, longitude])
+            }
+            else{
+                // create new train
+                let c = L.circle([latitude, longitude], { radius: 200, color: color })
+                        .bindPopup(train.line + " richtung: " + train.direction)
+
+                c.addTo(map)
+
+                train.marker = c
+            }
+
+        });
+
+    }
+
 
     function updateTrainLocations(){
 
@@ -110,7 +213,6 @@ export default {
                 })
                 .then(data => {
                     currenttime = data.Metadata.Timestamp
-                    //console.log(currenttime)
                     return data.Fahrten
                 })
                 .then(fahrten => {
@@ -127,6 +229,7 @@ export default {
                             })
                             .then(route => {
                                 if(route.Richtungstext === "Bärenschanze"){
+                                    console.log("BÄRENSCHANZE")
                                     console.log(route)
                                 }
 
@@ -191,78 +294,46 @@ export default {
                             })
                             .then(trainLocation => {
 
-                                //remove previous marker from same train
+                                let oldMarker = null
 
-                                let previousMarker = null
-                                for (let i = 0; i < trainMarkers.length; i++) {
-                                    if(typeof trainMarkers[i] !== 'undefined' && trainMarkers[i].fahrtnummer === trainLocation.fahrtnummer){
-                                        previousMarker = trainMarkers[i];
-                                    }
+                                // remove train if already exists
+
+                                let oldTrain = trains.filter(t => {
                                     
-                                }
+                                    return t.fahrtnummer === trainLocation.fahrtnummer
+                                })
 
                                 
 
+                                if(typeof oldTrain[0] !== 'undefined'){
+                                    oldMarker = oldTrain[0].marker
+                                }
+
+                                if(typeof oldMarker !== 'undefined'){
+                                    //map.removeLayer(oldMarker)
+                                }
                                 
 
-                                let color = "#000000"
-                                    if(trainLocation.line === "U1"){
-                                        color = "#0269b6"
+                                if(typeof oldTrain[0] !== 'undefined') {
+                                     const index = trains.map(e => e.fahrtnummer).indexOf(oldTrain[0].fahrtnummer);
+                                    if (index > -1) {
+                                        trains.splice(index, 1)
                                     }
-                                    else if(trainLocation.line === "U2"){
-                                        color = "#e30713"
-                                    }
-                                    else if(trainLocation.line === "U3"){
-                                        color = "#32b7bc"
-                                    }
-
-                                if(trainLocation.distance === 0){
-                                    // at station
-                                    
-                                    if(previousMarker === null){
-                                        let c = L.circle([trainLocation.stations.Latitude, trainLocation.stations.Longitude], {radius: 200, color: color})
-                                            .bindPopup(trainLocation.line + " richtung: " + trainLocation.richtung)
-
-                                        c.addTo(map)
-                                        
-                                        trainMarkers.push({
-                                            fahrtnummer: trainLocation.fahrtnummer,
-                                            marker: c
-                                        })
-                                    }
-                                    else{
-                                        previousMarker.marker.setLatLng([trainLocation.stations.Latitude, trainLocation.stations.Longitude])
-                                    }
-                                    
 
                                 }
-                                else{
-                                    // between two stations
-                                    let latitudeDifference = trainLocation.stations[0].Latitude - trainLocation.stations[1].Latitude
-                                    let latitude = trainLocation.stations[1].Latitude + latitudeDifference * trainLocation.distance
 
 
-                                    let longitudeDifference = trainLocation.stations[0].Longitude - trainLocation.stations[1].Longitude
-                                    let longitude = trainLocation.stations[1].Longitude + longitudeDifference * trainLocation.distance
+                                // add new train
 
-                                    if(previousMarker === null){
-                                        let c = L.circle([latitude, longitude], {radius: 200, color: color})
-                                            .bindPopup(trainLocation.line + " richtung: " + trainLocation.richtung)
+                                trains.push({
+                                    fahrtnummer: trainLocation.fahrtnummer,
+                                    stations: trainLocation.stations,
+                                    line: trainLocation.line,
+                                    direction: trainLocation.richtung,
+                                    marker: oldMarker,
+                                    distance: trainLocation.distance
+                                })
 
-                                    
-                                        c.addTo(map)
-                                        
-                                        trainMarkers.push({
-                                            fahrtnummer: trainLocation.fahrtnummer,
-                                            marker: c
-                                        })
-                                    }
-                                    else{
-                                        previousMarker.marker.setLatLng([latitude, longitude])
-                                    }
-                                    
-
-                                }
 
                             })
                     });
@@ -275,7 +346,8 @@ export default {
     return {
       mapContainer,
       setMarker,
-      updateTrainLocations
+      updateTrainLocations,
+      test
     }
   }
 }

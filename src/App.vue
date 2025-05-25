@@ -2,7 +2,7 @@
   <div class="container">
     <h1>My Vue Counter</h1>
     <button @click="increment">Count is: {{ count }}</button>
-    <button @click="console.log('waff'); $refs.myMap.updateTrainLocations()">Waff!</button>
+    <button @click="console.log('waff'); $refs.myMap.test()">Waff!</button>
     <LeafletMap ref="myMap"/>
   </div>
 </template>
