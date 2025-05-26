@@ -36,8 +36,10 @@ export default {
 
         let sateliteMap = 'https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}.jpg'
 
+        let humanitarianMap = 'http://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png'
 
-        L.tileLayer(basicLightMap, {
+
+        L.tileLayer(humanitarianMap, {
             attribution: '© OpenStreetMap contributors'
         }).addTo(map)
 
