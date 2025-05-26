@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <h1>My Vue Counter</h1>
+    <h1>U-Bahn Map Nürnberg</h1>
     <button @click="increment">Count is: {{ count }}</button>
     <button @click="console.log('waff'); $refs.myMap.test()">Waff!</button>
     <LeafletMap ref="myMap"/>

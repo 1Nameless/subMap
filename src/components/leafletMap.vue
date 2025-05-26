@@ -217,6 +217,20 @@ export default {
                 })
                 .then(fahrten => {
 
+                    let oldTrainNumbers = fahrten.map(e => e.Fahrtnummer)
+
+                    for (let i = 0; i < trains.length; i++) {
+                        if(oldTrainNumbers.indexOf(trains[i].fahrtnummer) === -1){
+                            console.log("removing train")
+                            console.log(trains[i])
+                            map.removeLayer(trains[i].marker)
+                            trains.splice(i, 1)
+                            i--;
+                        }
+                        
+                    }
+
+
                     fahrten.forEach(e => {
                         const fahrtnummer = e.Fahrtnummer
                         fetch("https://start.vag.de/dm/api/v1/fahrten/UBahn/" + fahrtnummer)
