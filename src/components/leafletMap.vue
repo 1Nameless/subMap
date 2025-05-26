@@ -26,7 +26,18 @@ export default {
     
         map = L.map(mapContainer.value).setView([49.45165265689441, 11.076346371026073], 13)
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        let basicMap = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+
+        let watercolorMap = 'https://tiles.stadiamaps.com/tiles/stamen_watercolor/{z}/{x}/{y}.jpg'
+
+        let basicDarkMap = 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png'
+
+        let basicLightMap = 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png'
+
+        let sateliteMap = 'https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}.jpg'
+
+
+        L.tileLayer(basicLightMap, {
             attribution: '© OpenStreetMap contributors'
         }).addTo(map)
 
@@ -180,10 +191,27 @@ export default {
                 // move marker from existing train
                 train.marker.setLatLng([latitude, longitude])
             }
-            else{
+            else {
                 // create new train
                 let c = L.circle([latitude, longitude], { radius: 200, color: color })
-                        .bindPopup(train.line + " richtung: " + train.direction)
+                    .bindPopup(train.line + " richtung: " + train.direction)
+
+                let stations = train.allStations
+                var latlngs = [];
+
+                stations.forEach(station => {
+                    latlngs.push([station.Latitude, station.Longitude])
+                });
+
+                let path = L.polyline(latlngs, {color: color, opacity: 0}).addTo(map);
+
+                c.on('popupopen', function (e) {
+                    path.setStyle({opacity: 1})
+                });
+
+                c.on('popupclose', function (e) {
+                    path.setStyle({opacity: 0})
+                });
 
                 c.addTo(map)
 
@@ -259,7 +287,8 @@ export default {
                                             distance: 0,
                                             line: route.Linienname,
                                             fahrtnummer: fahrtnummer,
-                                            richtung: route.Richtungstext
+                                            richtung: route.Richtungstext,
+                                            allStations: route.Fahrtverlauf
                                         }
 
                                     }
@@ -270,7 +299,8 @@ export default {
                                             distance: 0,
                                             line: route.Linienname,
                                             fahrtnummer: fahrtnummer,
-                                            richtung: route.Richtungstext
+                                            richtung: route.Richtungstext,
+                                            allStations: route.Fahrtverlauf
                                         }
                                     }
                                     else{
@@ -292,7 +322,8 @@ export default {
                                             distance: (c - lastDeparture) / (ankunft - lastDeparture),
                                             line: route.Linienname,
                                             fahrtnummer: fahrtnummer,
-                                            richtung: route.Richtungstext
+                                            richtung: route.Richtungstext,
+                                            allStations: route.Fahrtverlauf
                                         }
 
                                     }
@@ -345,7 +376,8 @@ export default {
                                     line: trainLocation.line,
                                     direction: trainLocation.richtung,
                                     marker: oldMarker,
-                                    distance: trainLocation.distance
+                                    distance: trainLocation.distance,
+                                    allStations: trainLocation.allStations
                                 })
 
 
