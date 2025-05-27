@@ -9,6 +9,9 @@ import vue from '@vitejs/plugin-vue'
 export default defineConfig({
   plugins: [vue()],
   server: {
-    allowedHosts: ['pinkblahaj.eu'],
+    allowedHosts: [
+      'pinkblahaj.eu',
+      'www.pinkblahaj.eu'
+    ],
   }
 })
