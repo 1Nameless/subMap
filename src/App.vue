@@ -2,8 +2,8 @@
   <div class="container">
     <h1 class="header">U-Bahn Map Nürnberg</h1>
     
-    <div class="test">
-      <LeafletMap class="mapContainer" ref="myMap"/>
+    <div class="mapContainer">
+      <LeafletMap class="map" ref="myMap"/>
     </div>
   </div>
 </template>
@@ -44,7 +44,7 @@ body{
   flex: 0 1 auto;
 }
 
-.mapContainer{
+.map{
   position: relative;
   height: 95%;
   margin-top: 20px;
@@ -53,7 +53,7 @@ body{
   flex: 1 1 auto;
 }
 
-.test{
+.mapContainer{
   flex: 1 1 auto;
   height: 100%
 }
