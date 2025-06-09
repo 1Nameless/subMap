@@ -411,10 +411,9 @@ export default {
 
 <style scoped>
 .map {
-  width: 2000px;
-  height: 1200px;
-  margin-top: 20px;
-  margin-left: 20px;
+  position: relative;
+  top: 0;
+  bottom: 0;
   border: 1px solid #ccc;
   border-radius: 8px;
 }
