@@ -196,7 +196,11 @@ export default {
             else {
                 // create new train
                 let c = L.circle([latitude, longitude], { radius: 200, color: color })
-                    .bindPopup(train.line + " richtung: " + train.direction)
+                    .bindPopup(train.line + " richtung: " + train.direction,
+                        {
+                            autoPan: false
+                        }
+                    )
 
                 let stations = train.allStations
                 var latlngs = [];
