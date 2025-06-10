@@ -27,6 +27,10 @@ sudo systemctl reload nginx
 /var/log/nginx/error.log
 
 
+# SSL
+managed on the server by Certbot
+
+
 # how to Deploy
 
 1. git pull
