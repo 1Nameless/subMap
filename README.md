@@ -25,3 +25,11 @@ sudo systemctl reload nginx
 
 /var/log/nginx/access.log
 /var/log/nginx/error.log
+
+
+# how to Deploy
+
+1. git pull
+2. npm run build
+3. delete old deployed files and copy over the newly generated ones into /etc/nginx/html/transmap and /etc/nginx/html/assets
+4. reload nginx (sudo systemctl reload nginx)
