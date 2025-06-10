@@ -5,6 +5,7 @@
 <script>
 import { onMounted, ref } from 'vue'
 import L from 'leaflet'
+import Train from '../entity/train'
 
 
 
@@ -126,7 +127,7 @@ export default {
 
 
     /*
-        fahrtnummer
+        trainNumber
         stations
         line
         direction
@@ -135,7 +136,6 @@ export default {
     let trains = []
 
     function drawTrains(){
-
 
         let currenttime = new Date().getTime()
         
@@ -231,9 +231,6 @@ export default {
 
     function updateTrainLocations(){
 
-        //clear trains
-        //trainMarkers.filter((e) => { e !== null } )
-
             const url = "https://start.vag.de/dm/api/v1/fahrten/UBahn?timespan=1"
 
             let currenttime = null
@@ -254,8 +251,9 @@ export default {
                     let oldTrainNumbers = fahrten.map(e => e.Fahrtnummer)
 
                     for (let i = 0; i < trains.length; i++) {
-                        if(oldTrainNumbers.indexOf(trains[i].fahrtnummer) === -1){
+                        if(oldTrainNumbers.indexOf(trains[i].trainNumber) === -1){
                             console.log("removing train")
+                            console.log(trains[i].trainNumber)
                             console.log(trains[i])
                             map.removeLayer(trains[i].marker)
                             trains.splice(i, 1)
@@ -351,7 +349,7 @@ export default {
 
                                 let oldTrain = trains.filter(t => {
                                     
-                                    return t.fahrtnummer === trainLocation.fahrtnummer
+                                    return t.trainNumber === trainLocation.fahrtnummer
                                 })
 
                                 
@@ -366,7 +364,7 @@ export default {
                                 
 
                                 if(typeof oldTrain[0] !== 'undefined') {
-                                     const index = trains.map(e => e.fahrtnummer).indexOf(oldTrain[0].fahrtnummer);
+                                     const index = trains.map(e => e.trainNumber).indexOf(oldTrain[0].trainNumber);
                                     if (index > -1) {
                                         trains.splice(index, 1)
                                     }
@@ -376,15 +374,17 @@ export default {
 
                                 // add new train
 
-                                trains.push({
-                                    fahrtnummer: trainLocation.fahrtnummer,
-                                    stations: trainLocation.stations,
-                                    line: trainLocation.line,
-                                    direction: trainLocation.richtung,
-                                    marker: oldMarker,
-                                    distance: trainLocation.distance,
-                                    allStations: trainLocation.allStations
-                                })
+                                let newTrain = new Train(
+                                    trainLocation.fahrtnummer,
+                                    trainLocation.stations,
+                                    trainLocation.line,
+                                    trainLocation.richtung,
+                                    oldMarker,
+                                    trainLocation.distance,
+                                    trainLocation.allStations
+                                )
+
+                                trains.push(newTrain)
 
 
                             })
