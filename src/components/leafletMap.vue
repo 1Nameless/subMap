@@ -6,7 +6,7 @@
 import { onMounted, ref } from 'vue'
 import L from 'leaflet'
 import Train from '../entity/train'
-
+import '../external/leaflet-corridor'
 
 
 export default {
@@ -112,7 +112,8 @@ export default {
 
                         let bounds = [[stop.Latitude - radius * 0.6, stop.Longitude - radius], [stop.Latitude + radius * 0.6, stop.Longitude + radius]]
 
-                        L.rectangle(bounds, {color: "#666666", weight: 1}).addTo(map)
+                        L.circle([stop.Latitude, stop.Longitude], {radius: 100, color: "#000000", weight: 3, opacity: 1, fillColor: '#FFFFFF', fillOpacity: 1})
+                            .addTo(map)
                             .bindPopup(stop.Haltestellenname + "\n" + stop.VAGKennung)
 
                         //L.marker([stop.Latitude, stop.Longitude]).addTo(map)
@@ -195,7 +196,7 @@ export default {
             }
             else {
                 // create new train
-                let c = L.circle([latitude, longitude], { radius: 200, color: color })
+                let c = L.circle([latitude, longitude], { radius: 200, color: color})
                     .bindPopup(train.line + " richtung: " + train.direction,
                         {
                             autoPan: false
@@ -209,8 +210,8 @@ export default {
                     latlngs.push([station.Latitude, station.Longitude])
                 });
 
-                let path = L.polyline(latlngs, {color: color, opacity: 0}).addTo(map);
-
+                //let path = L.polyline(latlngs, {color: color, opacity: 0, weight: 20, fill: false, fillColor: color, interactive: false}).addTo(map);
+                let path = L.corridor(latlngs, {color: color, opacity: 0, corridor: 30, fill: false, fillColor: color, interactive: false}).addTo(map);
                 c.on('popupopen', function (e) {
                     path.setStyle({opacity: 1})
                 });
