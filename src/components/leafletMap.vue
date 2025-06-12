@@ -14,7 +14,12 @@ export default {
   setup() {
     const mapContainer = ref(0)
 
-    let map
+    let map;
+
+    let trainPane;
+    let stationPane;
+    let routePane;
+    let popupPane;
 
     function setMarker(latitude, longitude, name) {
         L.marker([latitude, longitude]).addTo(map)
@@ -44,6 +49,18 @@ export default {
             attribution: '© OpenStreetMap contributors'
         }).addTo(map)
 
+
+        //instantiate all Panes
+
+        trainPane = map.createPane('trainPane');
+        routePane = map.createPane('routePane');
+        stationPane = map.createPane('stationPane');
+        popupPane = map.createPane('popupPane'); //popupPane already exists by default
+
+        trainPane.style.zIndex = 1100;
+        stationPane.style.zIndex = 1200;
+        routePane.style.zIndex = 1000;
+        popupPane.style.zIndex = 2000;
 
         getAllStops()
 
@@ -112,7 +129,7 @@ export default {
 
                         let bounds = [[stop.Latitude - radius * 0.6, stop.Longitude - radius], [stop.Latitude + radius * 0.6, stop.Longitude + radius]]
 
-                        L.circle([stop.Latitude, stop.Longitude], {radius: 100, color: "#000000", weight: 3, opacity: 1, fillColor: '#FFFFFF', fillOpacity: 1})
+                        L.circle([stop.Latitude, stop.Longitude], {radius: 100, color: "#000000", weight: 3, opacity: 1, fillColor: '#FFFFFF', fillOpacity: 1, pane: 'stationPane'})
                             .addTo(map)
                             .bindPopup(stop.Haltestellenname + "\n" + stop.VAGKennung)
 
@@ -196,7 +213,7 @@ export default {
             }
             else {
                 // create new train
-                let c = L.circle([latitude, longitude], { radius: 200, color: color})
+                let c = L.circle([latitude, longitude], { radius: 200, color: color, pane: 'trainPane'})
                     .bindPopup(train.line + " richtung: " + train.direction,
                         {
                             autoPan: false
@@ -211,7 +228,7 @@ export default {
                 });
 
                 //let path = L.polyline(latlngs, {color: color, opacity: 0, weight: 20, fill: false, fillColor: color, interactive: false}).addTo(map);
-                let path = L.corridor(latlngs, {color: color, opacity: 0, corridor: 30, fill: false, fillColor: color, interactive: false}).addTo(map);
+                let path = L.corridor(latlngs, {color: color, opacity: 0, corridor: 30, fill: false, fillColor: color, interactive: false, pane: 'routePane'}).addTo(map);
                 c.on('popupopen', function (e) {
                     path.setStyle({opacity: 1})
                 });
