@@ -7,6 +7,7 @@ import { onMounted, ref } from 'vue'
 import L from 'leaflet'
 import Train from '../entity/train'
 import '../external/leaflet-corridor'
+import TransportMap from '../entity/transportMap'
 
 
 export default {
@@ -15,6 +16,8 @@ export default {
     const mapContainer = ref(0)
 
     let map;
+    let transportMap;
+
 
     let trainPane;
     let stationPane;
@@ -42,7 +45,7 @@ export default {
 
         let sateliteMap = 'https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}.jpg'
 
-        let humanitarianMap = 'http://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png'
+        let humanitarianMap = 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png'
 
 
         L.tileLayer(humanitarianMap, {
@@ -62,11 +65,16 @@ export default {
         routePane.style.zIndex = 1000;
         popupPane.style.zIndex = 2000;
 
-        getAllStops()
+        //getAllStops()
+
+        transportMap = new TransportMap(map);
+        transportMap.loadStations();
+
 
         updateTrainLocations()
 
-        
+
+    
 
         
         setInterval(() => {
@@ -75,7 +83,8 @@ export default {
 
 
         setInterval(() => {
-            drawTrains()
+            //drawTrains()
+            drawAllTrains();
         }, 1000 / 30)
         
 
@@ -153,7 +162,57 @@ export default {
     */
     let trains = []
 
+    function drawAllTrains(){
+
+        trains.forEach(train => {
+            if(typeof train.marker === 'undefined' || train.marker === null){
+
+                let color = "#000000"
+                if (train.line === "U1") {
+                    color = "#0269b6"
+                }
+                else if (train.line === "U2") {
+                    color = "#e30713"
+                }
+                else if (train.line === "U3") {
+                    color = "#32b7bc"
+                }
+
+
+                // create new train
+                let c = L.circle([0, 0], { radius: 200, color: color, pane: 'trainPane'})
+                    .bindPopup(train.line + " richtung: " + train.direction,
+                        {
+                            autoPan: false
+                        }
+                    )
+
+                let stations = train.allStations;
+                var latlngs = [];
+
+                stations.forEach(station => {
+                    latlngs.push([station.Latitude, station.Longitude])
+                });
+
+                //let path = L.polyline(latlngs, {color: color, opacity: 0, weight: 20, fill: false, fillColor: color, interactive: false}).addTo(map);
+                let path = L.corridor(latlngs, {color: color, opacity: 0, corridor: 30, fill: false, fillColor: color, interactive: false, pane: 'routePane'}).addTo(map);
+                c.on('popupopen', function (e) {
+                    path.setStyle({opacity: 1})
+                });
+
+                c.on('popupclose', function (e) {
+                    path.setStyle({opacity: 0})
+                });
+
+                c.addTo(map)
+                train.marker = c;
+            }
+            train.drawOnMap();
+        })
+    }
+
     function drawTrains(){
+        console.log("DO NOT USE THIS")
 
         let currenttime = new Date().getTime()
         
@@ -399,7 +458,8 @@ export default {
                                     trainLocation.richtung,
                                     oldMarker,
                                     trainLocation.distance,
-                                    trainLocation.allStations
+                                    trainLocation.allStations,
+                                    transportMap
                                 )
 
                                 trains.push(newTrain)
