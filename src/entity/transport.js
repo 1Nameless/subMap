@@ -1,26 +1,24 @@
 
 
-export default class Train{
+export default class Transport{
 
     #transportMap;
 
-    #trainNumber;
-    #stations;
+    #transportNumber;
     #line;
     #direction
     #marker;
-    #distance;
     #allStations;
+    #transportMode
 
-    constructor(trainNumber, stations, line, direction, marker, distance, allStations, transportMap){
-        this.trainNumber = trainNumber;
-        this.stations = stations;
+    constructor(transportNumber, line, direction, marker, allStations, transportMap, transportMode){
+        this.transportNumber = transportNumber;
         this.line = line;
         this.direction = direction;
         this.marker = marker;
-        this.distance = distance;
         this.allStations = allStations;
         this.#transportMap = transportMap;
+        this.#transportMode = transportMode;
     }
 
 
@@ -54,13 +52,10 @@ export default class Train{
     }
 
 
-    set trainNumber(trainNumber){
-        this.#trainNumber = trainNumber;
+    set transportNumber(transportNumber){
+        this.#transportNumber = transportNumber;
     }
 
-    set stations(stations){
-        this.#stations = stations;
-    }
 
     set line(line){
         this.#line = line;
@@ -74,22 +69,16 @@ export default class Train{
         this.#marker = marker;
     }
 
-    set distance(distance){
-        this.#distance = distance;
-    }
 
     set allStations(allStations){
         this.#allStations = allStations;
     }
 
 
-    get trainNumber(){
-        return this.#trainNumber;
+    get transportNumber(){
+        return this.#transportNumber;
     }
 
-    get stations(){
-        return this.#stations;
-    }
 
     get line(){
         return this.#line;
@@ -103,9 +92,6 @@ export default class Train{
         return this.#marker;
     }
 
-    get distance(){
-        return this.#distance;
-    }
 
     get allStations(){
         return this.#allStations;
