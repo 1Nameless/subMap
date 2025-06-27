@@ -26,7 +26,7 @@ export default class TransportMap{
     loadStations() {
         //get Haltestelle by name (% as wildcard for everything) ("%" gets encoded as "%25")
         const url = "https://start.vag.de/dm/api/v1/haltestellen/VAG?name=%25"
-        
+
 
         fetch(url)
                 .then(response => {
@@ -84,7 +84,6 @@ export default class TransportMap{
 
     drawUbahnStations(){
         this.#getUbahnStations().forEach(station => {
-            console.log(station.latitude + " - " + station.longitude)
             L.circle([station.latitude, station.longitude], {radius: 100, color: "#000000", weight: 3, opacity: 1, fillColor: '#FFFFFF', fillOpacity: 1, pane: 'stationPane'})
                 .bindPopup(station.name + "  -  " + station.transportType)
                 .addTo(this.#map)

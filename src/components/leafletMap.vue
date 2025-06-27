@@ -78,7 +78,6 @@ export default {
         
         setInterval(() => {
             updateTrainLocations()
-            console.log(transportMap)
         }, 1000 * 5)
 
 
@@ -132,16 +131,6 @@ export default {
                     latlngs.push(transportMap.getLatLngForStation_VAG(station.VAG_StationName))
                 });
 
-                if(typeof latlngs[0] === 'undefined'){
-                    console.log("we have an undefined")
-                    console.log(latlngs)
-                    console.log(stations)
-                }
-                else {
-                    //console.log("defined")
-                    //console.log(latlngs)
-                }
-
                 //let path = L.polyline(latlngs, {color: color, opacity: 0, weight: 20, fill: false, fillColor: color, interactive: false}).addTo(map);
                 let path = L.corridor(latlngs, {color: color, opacity: 0, corridor: 30, fill: false, fillColor: color, interactive: false, pane: 'routePane'}).addTo(map);
                 c.on('popupopen', function (e) {
@@ -183,9 +172,6 @@ export default {
 
                     for (let i = 0; i < trains.length; i++) {
                         if(oldTrainNumbers.indexOf(trains[i].transportNumber) === -1){
-                            console.log("removing train")
-                            console.log(trains[i].transportNumber)
-                            console.log(trains[i])
                             map.removeLayer(trains[i].marker)
                             trains.splice(i, 1)
                             i--;
@@ -253,7 +239,6 @@ export default {
                                     stations.push(new TransportStop().fromJson(station))
                                 })
 
-                                //console.log(stations);
 
                                 let newTrain = new Transport(
                                     trainLocation.fahrtnummer,
