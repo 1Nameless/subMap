@@ -29,21 +29,21 @@ export default class Transport{
         for (let i = 0; i < this.#allStations.length; i++) {
             const station = this.#allStations[i];
 
-            let ankunftszeit = new Date(station.AnkunftszeitIst).getTime();
-            let abfahrtszeit = new Date(station.AbfahrtszeitIst).getTime();
+            let ankunftszeit = new Date(station.actualArrival).getTime();
+            let abfahrtszeit = new Date(station.actualDeparture).getTime();
             
-            if(typeof station.AnkunftszeitIst !== 'undefined' && ankunftszeit > currentTime){
+            if(typeof station.actualArrival !== 'undefined' && ankunftszeit > currentTime){
                 // zwischen dieser und letzter Station
-                let departure = new Date(this.#allStations[i-1].AbfahrtszeitIst).getTime();
-                let arrival = new Date(station.AnkunftszeitIst).getTime();
+                let departure = new Date(this.#allStations[i-1].actualDeparture).getTime();
+                let arrival = new Date(station.actualArrival).getTime();
                 let distance = (currentTime - departure) / (arrival - departure);
 
-                this.#transportMap.drawTransportBetweenStations(this.#allStations[i-1].VAGKennung, station.VAGKennung, distance, this.marker)
+                this.#transportMap.drawTransportBetweenStations(this.#allStations[i-1].VAG_StationName, station.VAG_StationName, distance, this.marker)
                 return;
             }
-            else if(typeof station.AbfahrtszeitIst === 'undefined' || abfahrtszeit >= currentTime){
+            else if(typeof station.actualDeparture === 'undefined' || abfahrtszeit >= currentTime){
                 //at station
-                this.#transportMap.drawTransportAtStation(station.VAGKennung, this.marker);
+                this.#transportMap.drawTransportAtStation(station.VAG_StationName, this.marker);
                 return;
             }
 

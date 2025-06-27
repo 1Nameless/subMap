@@ -14,9 +14,19 @@ export default class TransportMap{
     }
 
 
+    getLatLngForStation_VAG(VAG_name){
+        for (let i = 0; i < this.#stations.length; i++) {
+            if(this.#stations[i].VAG_Name === VAG_name){
+                return [this.#stations[i].latitude, this.#stations[i].longitude];
+            }
+        }
+    }
+
+
     loadStations() {
-        //get Haltestelle by name (% as wildcard for everything) ("%"" gets encoded as "%25")
+        //get Haltestelle by name (% as wildcard for everything) ("%" gets encoded as "%25")
         const url = "https://start.vag.de/dm/api/v1/haltestellen/VAG?name=%25"
+        
 
         fetch(url)
                 .then(response => {
@@ -74,6 +84,7 @@ export default class TransportMap{
 
     drawUbahnStations(){
         this.#getUbahnStations().forEach(station => {
+            console.log(station.latitude + " - " + station.longitude)
             L.circle([station.latitude, station.longitude], {radius: 100, color: "#000000", weight: 3, opacity: 1, fillColor: '#FFFFFF', fillOpacity: 1, pane: 'stationPane'})
                 .bindPopup(station.name + "  -  " + station.transportType)
                 .addTo(this.#map)
@@ -131,20 +142,18 @@ export default class TransportMap{
         })[0];
 
 
-        let latitudeDifference = secondStation.latitude - firstStation.latitude
-        let latitude = firstStation.latitude + latitudeDifference * distance
+        let latitudeDifference = secondStation.latitude - firstStation.latitude;
+        let latitude = firstStation.latitude + latitudeDifference * distance;
 
 
-        let longitudeDifference = secondStation.longitude - firstStation.longitude
-        let longitude = firstStation.longitude + longitudeDifference * distance
+        let longitudeDifference = secondStation.longitude - firstStation.longitude;
+        let longitude = firstStation.longitude + longitudeDifference * distance;
 
         marker.setLatLng([latitude, longitude]);
     }
 
 
     drawAllStations(){
-
-        console.log(this.#stations)
 
         this.#stations.forEach(station => {
             

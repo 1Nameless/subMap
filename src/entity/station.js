@@ -9,7 +9,7 @@ export default class Station{
     #VGN_Name;
     #longitude;
     #latitude;
-    #transportType
+    #transportType;
 
     constructor(name, VAG_Name, VGN_Name, longitude, latitude, transportType){
         this.#name = name;
@@ -19,7 +19,7 @@ export default class Station{
         this.#latitude = latitude;
         this.#transportType = transportType;
     }
-
+    
 
     get name(){
         return this.#name;

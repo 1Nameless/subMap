@@ -8,6 +8,8 @@ import L from 'leaflet'
 import Transport from '../entity/transport'
 import '../external/leaflet-corridor'
 import TransportMap from '../entity/transportMap'
+import Station from '../entity/station'
+import TransportStop from '../entity/transportStop'
 
 
 export default {
@@ -71,14 +73,12 @@ export default {
         transportMap.loadStations();
 
 
-        updateTrainLocations()
-
-
     
 
         
         setInterval(() => {
             updateTrainLocations()
+            console.log(transportMap)
         }, 1000 * 5)
 
 
@@ -129,8 +129,18 @@ export default {
                 var latlngs = [];
 
                 stations.forEach(station => {
-                    latlngs.push([station.Latitude, station.Longitude])
+                    latlngs.push(transportMap.getLatLngForStation_VAG(station.VAG_StationName))
                 });
+
+                if(typeof latlngs[0] === 'undefined'){
+                    console.log("we have an undefined")
+                    console.log(latlngs)
+                    console.log(stations)
+                }
+                else {
+                    //console.log("defined")
+                    //console.log(latlngs)
+                }
 
                 //let path = L.polyline(latlngs, {color: color, opacity: 0, weight: 20, fill: false, fillColor: color, interactive: false}).addTo(map);
                 let path = L.corridor(latlngs, {color: color, opacity: 0, corridor: 30, fill: false, fillColor: color, interactive: false, pane: 'routePane'}).addTo(map);
@@ -237,12 +247,20 @@ export default {
 
                                 // add new train
 
+                                let stations = [];
+
+                                trainLocation.allStations.forEach(station => {
+                                    stations.push(new TransportStop().fromJson(station))
+                                })
+
+                                //console.log(stations);
+
                                 let newTrain = new Transport(
                                     trainLocation.fahrtnummer,
                                     trainLocation.line,
                                     trainLocation.richtung,
                                     oldMarker,
-                                    trainLocation.allStations,
+                                    stations,
                                     transportMap,
                                     'UBahn'
                                 )
