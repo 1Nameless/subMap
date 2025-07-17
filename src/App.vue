@@ -46,16 +46,15 @@ body{
 
 .map{
   position: relative;
-  height: 95%;
-  margin-top: 20px;
-  margin-left: 2%;
-  width: 96%;
+  height: 100%;
+  margin-top: 0px;
+  margin-left: 0%;
+  width: 100%;
   flex: 1 1 auto;
 }
 
 .mapContainer{
-  flex: 1 1 auto;
-  height: 100%
+  height: 95%
 }
 
 </style>

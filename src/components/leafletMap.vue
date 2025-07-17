@@ -1,5 +1,12 @@
 <template>
-  <div id="map" ref="mapContainer" class="map"></div>
+    <div class="mapContainerInner">
+        <div id="map" ref="mapContainer" class="map"></div>
+        <div class="buttons">
+            <button @click="console.log('UBAHN')"> UBahn </button>
+            <button> Tram </button>
+            <button @click="toggleBus()"> Bus </button>
+        </div>
+    </div>
 </template>
 
 <script>
@@ -13,277 +20,354 @@ import TransportStop from '../entity/transportStop'
 
 
 export default {
-  name: 'LeafletMap',
-  setup() {
-    const mapContainer = ref(0)
+    name: 'LeafletMap',
+    setup() {
+        const mapContainer = ref(0)
 
-    let map;
-    let transportMap;
-
-
-    let trainPane;
-    let stationPane;
-    let routePane;
-    let popupPane;
-
-    function setMarker(latitude, longitude, name) {
-        L.marker([latitude, longitude]).addTo(map)
-            .bindPopup(name)
-            .openPopup()
-    }
-
-        
-    onMounted(() => {
-    
-        map = L.map(mapContainer.value).setView([49.45165265689441, 11.076346371026073], 13)
-
-        let basicMap = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-
-        let watercolorMap = 'https://tiles.stadiamaps.com/tiles/stamen_watercolor/{z}/{x}/{y}.jpg'
-
-        let basicDarkMap = 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png'
-
-        let basicLightMap = 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png'
-
-        let sateliteMap = 'https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}.jpg'
-
-        let humanitarianMap = 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png'
+        let map;
+        let transportMap;
 
 
-        L.tileLayer(humanitarianMap, {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map)
+        let trainPane;
+        let stationPane;
+        let routePane;
+        let popupPane;
+
+        function setMarker(latitude, longitude, name) {
+            L.marker([latitude, longitude]).addTo(map)
+                .bindPopup(name)
+                .openPopup()
+        }
 
 
-        //instantiate all Panes
+        onMounted(() => {
 
-        trainPane = map.createPane('trainPane');
-        routePane = map.createPane('routePane');
-        stationPane = map.createPane('stationPane');
-        popupPane = map.createPane('popupPane'); //popupPane already exists by default
+            map = L.map(mapContainer.value).setView([49.45165265689441, 11.076346371026073], 13)
 
-        trainPane.style.zIndex = 1100;
-        stationPane.style.zIndex = 1200;
-        routePane.style.zIndex = 1000;
-        popupPane.style.zIndex = 2000;
+            let basicMap = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
 
-        //getAllStops()
+            let watercolorMap = 'https://tiles.stadiamaps.com/tiles/stamen_watercolor/{z}/{x}/{y}.jpg'
 
-        transportMap = new TransportMap(map);
-        transportMap.loadStations();
+            let basicDarkMap = 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png'
 
+            let basicLightMap = 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png'
 
-    
+            let sateliteMap = 'https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}.jpg'
 
-        
-        setInterval(() => {
-            updateTrainLocations()
-        }, 1000 * 5)
+            let humanitarianMap = 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png'
 
 
-        setInterval(() => {
-            //drawTrains()
-            drawAllTrains();
-        }, 1000 / 30)
-        
-
-    })
+            L.tileLayer(humanitarianMap, {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map)
 
 
-    /*
-        transportNumber
-        stations
-        line
-        direction
-        marker
-    */
-    let trains = []
+            //instantiate all Panes
 
-    function drawAllTrains(){
+            trainPane = map.createPane('trainPane');
+            routePane = map.createPane('routePane');
+            stationPane = map.createPane('stationPane');
+            popupPane = map.createPane('popupPane'); //popupPane already exists by default
 
-        trains.forEach(train => {
-            if(typeof train.marker === 'undefined' || train.marker === null){
+            trainPane.style.zIndex = 1100;
+            stationPane.style.zIndex = 1200;
+            routePane.style.zIndex = 1000;
+            popupPane.style.zIndex = 2000;
 
-                let color = "#000000"
-                if (train.line === "U1") {
-                    color = "#0269b6"
-                }
-                else if (train.line === "U2") {
-                    color = "#e30713"
-                }
-                else if (train.line === "U3") {
-                    color = "#32b7bc"
-                }
+            //getAllStops()
+
+            transportMap = new TransportMap(map);
+            transportMap.loadStations();
 
 
-                // create new train
-                let c = L.circle([0, 0], { radius: 200, color: color, pane: 'trainPane'})
-                    .bindPopup(train.line + " richtung: " + train.direction,
-                        {
-                            autoPan: false
-                        }
-                    )
+            setInterval(() => {
+                updateTramLocations('UBahn');
+                updateTramLocations('Tram');
+                updateTramLocations('Bus');
+            }, 1000 * 5)
 
-                let stations = train.allStations;
-                var latlngs = [];
 
-                stations.forEach(station => {
-                    latlngs.push(transportMap.getLatLngForStation_VAG(station.VAG_StationName))
-                });
+            setInterval(() => {
+                //drawTrains()
+                drawAllTrains();
+            }, 1000 / 30)
 
-                //let path = L.polyline(latlngs, {color: color, opacity: 0, weight: 20, fill: false, fillColor: color, interactive: false}).addTo(map);
-                let path = L.corridor(latlngs, {color: color, opacity: 0, corridor: 30, fill: false, fillColor: color, interactive: false, pane: 'routePane'}).addTo(map);
-                c.on('popupopen', function (e) {
-                    path.setStyle({opacity: 1})
-                });
 
-                c.on('popupclose', function (e) {
-                    path.setStyle({opacity: 0})
-                });
-
-                c.addTo(map)
-                train.marker = c;
-            }
-            train.drawOnMap();
         })
-    }
 
 
-    function updateTrainLocations(){
+        let busVisible = true;
 
-            const url = "https://start.vag.de/dm/api/v1/fahrten/UBahn?timespan=1"
 
-            let currenttime = null
+        function toggleBus() {
+            busVisible = !busVisible;
+        }
+
+
+        /*
+            transportNumber
+            stations
+            line
+            direction
+            marker
+        */
+        let trains = []
+
+
+        function getTrainMarker(train) {
+            let color = "#000000"
+            if (train.line === "U1") {
+                color = "#0269b6"
+            }
+            else if (train.line === "U2") {
+                color = "#e30713"
+            }
+            else if (train.line === "U3") {
+                color = "#32b7bc"
+            }
+
+
+            // create new train
+            let c = L.circle([0, 0], { radius: 200, color: color, pane: 'trainPane' })
+                .bindPopup(train.line + " richtung: " + train.direction,
+                    {
+                        autoPan: false
+                    }
+                )
+
+            let stations = train.allStations;
+            var latlngs = [];
+
+            stations.forEach(station => {
+                latlngs.push(transportMap.getLatLngForStation_VAG(station.VAG_StationName));
+            });
+
+            //let path = L.polyline(latlngs, {color: color, opacity: 0, weight: 20, fill: false, fillColor: color, interactive: false}).addTo(map);
+            let path = L.corridor(latlngs, { color: color, opacity: 0, corridor: 30, fill: false, fillColor: color, interactive: false, pane: 'routePane' }).addTo(map);
+            c.on('popupopen', function (e) {
+                path.setStyle({ opacity: 1 })
+            });
+
+            c.on('popupclose', function (e) {
+                path.setStyle({ opacity: 0 })
+            });
+
+            return c;
+        }
+
+        function getTramMarker(tram) {
+            let color = "#FF9900"
+
+            let c = L.circle([0, 0], { radius: 150, color: color, pane: 'trainPane' })
+                .bindPopup(tram.line + " richtung: " + tram.direction,
+                    {
+                        autoPan: false
+                    }
+                )
+
+            let stations = tram.allStations;
+            var latlngs = [];
+
+            stations.forEach(station => {
+                latlngs.push(transportMap.getLatLngForStation_VAG(station.VAG_StationName));
+            });
+
+            //let path = L.polyline(latlngs, {color: color, opacity: 0, weight: 20, fill: false, fillColor: color, interactive: false}).addTo(map);
+            let path = L.corridor(latlngs, { color: color, opacity: 0, corridor: 20, fill: false, fillColor: color, interactive: false, pane: 'routePane' }).addTo(map);
+            c.on('popupopen', function (e) {
+                path.setStyle({ opacity: 1 })
+            });
+
+            c.on('popupclose', function (e) {
+                path.setStyle({ opacity: 0 })
+            });
+
+            return c;
+        }
+
+        function getBusMarker(bus) {
+            let color = "#99FF99"
+
+            let c = L.circle([0, 0], { radius: 100, color: color, pane: 'trainPane' })
+                .bindPopup(bus.line + " richtung: " + bus.direction,
+                    {
+                        autoPan: false
+                    }
+                )
+
+            let stations = bus.allStations;
+            var latlngs = [];
+
+            stations.forEach(station => {
+                let cords = transportMap.getLatLngForStation_VAG(station.VAG_StationName);
+                if (typeof cords !== 'undefined') {
+                    latlngs.push(cords);
+                }
+            });
+
+            //let path = L.polyline(latlngs, {color: color, opacity: 0, weight: 20, fill: false, fillColor: color, interactive: false}).addTo(map);
+            let path = L.corridor(latlngs, { color: color, opacity: 0, corridor: 15, fill: false, fillColor: color, interactive: false, pane: 'routePane' }).addTo(map);
+            c.on('popupopen', function (e) {
+                path.setStyle({ opacity: 1 })
+            });
+
+            c.on('popupclose', function (e) {
+                path.setStyle({ opacity: 0 })
+            });
+
+            return c;
+        }
+
+        function drawAllTrains() {
+
+            trains.forEach(train => {
+                if (typeof train.marker === 'undefined' || train.marker === null) {
+
+                    if (train.transportMode === 'UBahn') {
+                        let marker = getTrainMarker(train);
+                        marker.addTo(map);
+                        train.marker = marker;
+
+                    }
+                    else if (train.transportMode === 'Tram') {
+                        let marker = getTramMarker(train);
+                        marker.addTo(map);
+                        train.marker = marker;
+                    }
+                    else if (train.transportMode === 'Bus') {
+                        let marker = getBusMarker(train);
+                        marker.addTo(map);
+                        train.marker = marker;
+                    }
+
+                }
+
+                if (train.transportMode === "Bus" && busVisible === true) {
+                    train.marker.setStyle({ opacity: 1, fillOpacity: 0.2, interactive: true })
+                    train.drawOnMap();
+                }
+                else if (train.transportMode === "Tram") {
+                    train.marker.setStyle({ opacity: 1, fillOpacity: 0.2, interactive: true })
+                    train.drawOnMap();
+                }
+                else if (train.transportMode === "UBahn") {
+                    train.marker.setStyle({ opacity: 1, fillOpacity: 0.2, interactive: true })
+                    train.drawOnMap();
+                }
+                else {
+                    train.marker.setStyle({ opacity: 0, fillOpacity: 0, interactive: false})
+                }
+
+            })
+        }
+
+
+        function updateTramLocations(transportMode) {
+
+            const url = "https://start.vag.de/dm/api/v1/fahrten/" + transportMode + "?timespan=1"
 
             fetch(url)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
                     }
-                    return response.json()
+                    return response.json();
                 })
                 .then(data => {
-                    currenttime = data.Metadata.Timestamp
-                    return data.Fahrten
+                    return data.Fahrten;
                 })
                 .then(fahrten => {
 
-                    let oldTrainNumbers = fahrten.map(e => e.Fahrtnummer)
+                    let newTramNumbers = fahrten.map(e => e.Fahrtnummer)
 
                     for (let i = 0; i < trains.length; i++) {
-                        if(oldTrainNumbers.indexOf(trains[i].transportNumber) === -1){
+                        if (trains[i].transportMode === transportMode && newTramNumbers.indexOf(trains[i].transportNumber) === -1) {
                             map.removeLayer(trains[i].marker)
                             trains.splice(i, 1)
                             i--;
                         }
-                        
                     }
 
-
                     fahrten.forEach(e => {
-                        const fahrtnummer = e.Fahrtnummer
-                        fetch("https://start.vag.de/dm/api/v1/fahrten/UBahn/" + fahrtnummer)
+                        fetch("https://start.vag.de/dm/api/v1/fahrten/" + transportMode + '/' + e.Fahrtnummer)
                             .then(response => {
                                 if (!response.ok) {
                                     throw new Error('Network response was not ok');
                                 }
-                                
-                                return response.json()
+
+                                return response.json();
                             })
-                            .then(route => {
+                            .then(ride => {
 
-                                return {
-                                    line: route.Linienname,
-                                    fahrtnummer: fahrtnummer,
-                                    richtung: route.Richtungstext,
-                                    allStations: route.Fahrtverlauf
-                                }
-
-                            })
-                            .then(trainLocation => {
-
-                                let oldMarker = null
-
-                                // remove train if already exists
 
                                 let oldTrain = trains.filter(t => {
-                                    
-                                    return t.transportNumber === trainLocation.fahrtnummer
-                                })
+                                    return t.transportNumber === ride.Fahrtnummer;
+                                })[0]
 
-                                
+                                if (typeof oldTrain === 'undefined') {
 
-                                if(typeof oldTrain[0] !== 'undefined'){
-                                    oldMarker = oldTrain[0].marker
+                                    // check if all stations are already loaded and if not fix them in
+
+                                    ride.Fahrtverlauf.forEach(station => {
+                                        if(typeof transportMap.getStation(station.VAGKennung) === 'undefined'){
+                                            console.log(station);
+                                            transportMap.addStation(new Station(station.Haltestellenname, station.VAGKennung, station.VGNKennung, station.Longitude, station.Latitude, 'Bus'))
+                                        }
+                                    })
+
+
+                                    oldTrain = new Transport(ride.Fahrtnummer, ride.Linienname, ride.Richtungstext, null, null, transportMap, transportMode);
+                                    trains.push(oldTrain);
                                 }
 
-                                if(typeof oldMarker !== 'undefined'){
-                                    //map.removeLayer(oldMarker)
-                                }
-                                
-
-                                if(typeof oldTrain[0] !== 'undefined') {
-                                     const index = trains.map(e => e.transportNumber).indexOf(oldTrain[0].transportNumber);
-                                    if (index > -1) {
-                                        trains.splice(index, 1)
-                                    }
-
-                                }
-
-
-                                // add new train
 
                                 let stations = [];
 
-                                trainLocation.allStations.forEach(station => {
-                                    stations.push(new TransportStop().fromJson(station))
+                                ride.Fahrtverlauf.forEach(station => {
+                                    stations.push(new TransportStop().fromJson(station));
                                 })
 
-
-                                let newTrain = new Transport(
-                                    trainLocation.fahrtnummer,
-                                    trainLocation.line,
-                                    trainLocation.richtung,
-                                    oldMarker,
-                                    stations,
-                                    transportMap,
-                                    'UBahn'
-                                )
-
-                                trains.push(newTrain)
-
-
+                                oldTrain.allStations = stations;
                             })
-                    });
 
-                    
+                    })
+
+
                 })
 
         }
 
-    return {
-      mapContainer,
-      setMarker,
-      updateTrainLocations
+
+
+        return {
+            mapContainer,
+            setMarker,
+            toggleBus
+        }
     }
-  }
 }
-
-
-
-
-
-
-
-
 </script>
 
 <style scoped>
+.mapContainerInner {
+    position: relative;
+    height: 95%;
+    width: 95%;
+    flex: 1 1 auto;
+    top: 0;
+    bottom: 0;
+    margin-left: 20px;
+}
+
 .map {
-  position: relative;
-  top: 0;
-  bottom: 0;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+.buttons {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1000;
 }
 </style>

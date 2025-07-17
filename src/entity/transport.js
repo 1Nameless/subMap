@@ -9,7 +9,7 @@ export default class Transport{
     #direction
     #marker;
     #allStations;
-    #transportMode
+    #transportMode;
 
     constructor(transportNumber, line, direction, marker, allStations, transportMap, transportMode){
         this.transportNumber = transportNumber;
@@ -32,8 +32,16 @@ export default class Transport{
             let ankunftszeit = new Date(station.actualArrival).getTime();
             let abfahrtszeit = new Date(station.actualDeparture).getTime();
             
-            if(typeof station.actualArrival !== 'undefined' && ankunftszeit > currentTime){
+            if(i !== 0 && ankunftszeit > currentTime){
                 // zwischen dieser und letzter Station
+                if(typeof this.#allStations[i-1] === 'undefined'){
+                    console.log("last station undefined error")
+                    console.log(this.line + " - " + this.direction)
+                    console.log(station)
+                    console.log(i)
+                    console.log(this.#allStations)
+                    console.log(this)
+                }
                 let departure = new Date(this.#allStations[i-1].actualDeparture).getTime();
                 let arrival = new Date(station.actualArrival).getTime();
                 let distance = (currentTime - departure) / (arrival - departure);
@@ -41,7 +49,7 @@ export default class Transport{
                 this.#transportMap.drawTransportBetweenStations(this.#allStations[i-1].VAG_StationName, station.VAG_StationName, distance, this.marker)
                 return;
             }
-            else if(typeof station.actualDeparture === 'undefined' || abfahrtszeit >= currentTime){
+            else if(i === this.#allStations.length - 1 || abfahrtszeit >= currentTime){
                 //at station
                 this.#transportMap.drawTransportAtStation(station.VAG_StationName, this.marker);
                 return;
@@ -95,6 +103,10 @@ export default class Transport{
 
     get allStations(){
         return this.#allStations;
+    }
+
+    get transportMode(){
+        return this.#transportMode;
     }
 
 

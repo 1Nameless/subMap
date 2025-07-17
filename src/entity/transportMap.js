@@ -22,6 +22,22 @@ export default class TransportMap{
         }
     }
 
+    getStation(VAG_name){
+        for (let i = 0; i < this.#stations.length; i++) {
+            
+            if(this.#stations[i].VAG_Name === VAG_name){
+                return this.#stations[i];
+            }
+
+        
+        }
+        return undefined;
+    }
+
+    addStation(station){
+        this.#stations.push(station);
+    }
+
 
     loadStations() {
         //get Haltestelle by name (% as wildcard for everything) ("%" gets encoded as "%25")
@@ -55,7 +71,7 @@ export default class TransportMap{
                     //this.drawAllStations();
                     this.drawUbahnStations();
                     this.drawTramStations();
-                    //this.drawBusStations();
+                    this.drawBusStations();
                 })
     }
 
