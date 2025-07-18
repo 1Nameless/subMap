@@ -1,11 +1,6 @@
 <template>
     <div class="mapContainerInner">
         <div id="map" ref="mapContainer" class="map"></div>
-        <div class="buttons">
-            <button @click="console.log('UBAHN')"> UBahn </button>
-            <button> Tram </button>
-            <button @click="toggleBus()"> Bus </button>
-        </div>
     </div>
 </template>
 
@@ -29,9 +24,42 @@ export default {
 
 
         let trainPane;
-        let stationPane;
+        let busStationPane;
+        let tramStationPane;
+        let subwayStationPane;
         let routePane;
         let popupPane;
+
+        /**
+         * busNetwork - Layergroup containing busses and busStations
+         * buses - Layergroup of all bus vehicles
+         * busStations - Layergroup of all bus stations
+         */
+        let buses = L.layerGroup();
+        let busStations = L.layerGroup();
+        let busNetwork = L.layerGroup([buses, busStations]);
+
+
+        /**
+         * tramNetwork - Layergroup containing trams and tramStations
+         * trams - Layergroup of all tram vehicles
+         * tramStations - Layergroup of all tram stations
+         */
+        let trams = L.layerGroup();
+        let tramStations = L.layerGroup();
+        let tramNetwork = L.layerGroup([trams, tramStations]);
+
+
+        /**
+         * subwayNetwork - Layergroup containing subways and subwayStations
+         * subways - Layergroup of all subway vehicles
+         * subwayStations - Layergroup of all subway stations
+         */
+        let subways = L.layerGroup();
+        let subwayStations = L.layerGroup();
+        let subwayNetwork = L.layerGroup([subways, subwayStations]);
+
+
 
         function setMarker(latitude, longitude, name) {
             L.marker([latitude, longitude]).addTo(map)
@@ -46,7 +74,7 @@ export default {
 
             let basicMap = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
 
-            let watercolorMap = 'https://tiles.stadiamaps.com/tiles/stamen_watercolor/{z}/{x}/{y}.jpg'
+            let watercolorMap = 'https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}.jpg'
 
             let basicDarkMap = 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png'
 
@@ -57,26 +85,44 @@ export default {
             let humanitarianMap = 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png'
 
 
-            L.tileLayer(humanitarianMap, {
+            let baseMap = L.tileLayer(humanitarianMap, {
                 attribution: '© OpenStreetMap contributors'
-            }).addTo(map)
+            }).addTo(map);
 
 
             //instantiate all Panes
 
             trainPane = map.createPane('trainPane');
             routePane = map.createPane('routePane');
-            stationPane = map.createPane('stationPane');
+            busStationPane = map.createPane('busStationPane');
+            tramStationPane = map.createPane('tramStationPane');
+            subwayStationPane = map.createPane('subwayStationPane');
             popupPane = map.createPane('popupPane'); //popupPane already exists by default
 
+            busNetwork.addTo(map);
+            tramNetwork.addTo(map);
+            subwayNetwork.addTo(map);
+
+
+            let transportOverlay = {
+                "Bus": busNetwork,
+                "Tram": tramNetwork,
+                "U-Bahn": subwayNetwork
+            }
+
+
+            let layerControl = L.control.layers({ "humanMap": baseMap }, transportOverlay, { hideSingleBase: true }).addTo(map);
+
             trainPane.style.zIndex = 1100;
-            stationPane.style.zIndex = 1200;
+            busStationPane.style.zIndex = 1200;
+            tramStationPane.style.zIndex = 1210;
+            subwayStationPane.style.zIndex = 1220;
             routePane.style.zIndex = 1000;
             popupPane.style.zIndex = 2000;
 
             //getAllStops()
 
-            transportMap = new TransportMap(map);
+            transportMap = new TransportMap(map, busStations, tramStations, subwayStations);
             transportMap.loadStations();
 
 
@@ -100,6 +146,7 @@ export default {
 
 
         function toggleBus() {
+
             busVisible = !busVisible;
         }
 
@@ -134,6 +181,7 @@ export default {
                         autoPan: false
                     }
                 )
+            subways.addLayer(c);
 
             let stations = train.allStations;
             var latlngs = [];
@@ -164,6 +212,7 @@ export default {
                         autoPan: false
                     }
                 )
+            trams.addLayer(c);
 
             let stations = tram.allStations;
             var latlngs = [];
@@ -195,6 +244,10 @@ export default {
                     }
                 )
 
+            buses.addLayer(c);
+
+
+
             let stations = bus.allStations;
             var latlngs = [];
 
@@ -208,7 +261,10 @@ export default {
             //let path = L.polyline(latlngs, {color: color, opacity: 0, weight: 20, fill: false, fillColor: color, interactive: false}).addTo(map);
             let path = L.corridor(latlngs, { color: color, opacity: 0, corridor: 15, fill: false, fillColor: color, interactive: false, pane: 'routePane' }).addTo(map);
             c.on('popupopen', function (e) {
-                path.setStyle({ opacity: 1 })
+                console.log("BUS:")
+                console.log(c)
+                path.setStyle({ opacity: 1 });
+                console.log(c)
             });
 
             c.on('popupclose', function (e) {
@@ -243,19 +299,21 @@ export default {
                 }
 
                 if (train.transportMode === "Bus" && busVisible === true) {
-                    train.marker.setStyle({ opacity: 1, fillOpacity: 0.2, interactive: true })
+                    //train.marker.setStyle({ opacity: 1, fillOpacity: 0.2, interactive: false })
                     train.drawOnMap();
                 }
                 else if (train.transportMode === "Tram") {
-                    train.marker.setStyle({ opacity: 1, fillOpacity: 0.2, interactive: true })
+                    //train.marker.setStyle({ opacity: 1, fillOpacity: 0.2, interactive: true })
                     train.drawOnMap();
                 }
                 else if (train.transportMode === "UBahn") {
-                    train.marker.setStyle({ opacity: 1, fillOpacity: 0.2, interactive: true })
+                    //train.marker.setStyle({ opacity: 1, fillOpacity: 0.2, interactive: true })
                     train.drawOnMap();
                 }
                 else {
-                    train.marker.setStyle({ opacity: 0, fillOpacity: 0, interactive: false})
+                    //train.marker.setStyle({ opacity: 0, fillOpacity: 0, interactive: false});
+                    //train.marker.redraw();
+                    //train.marker.closePopup();
                 }
 
             })
@@ -309,7 +367,7 @@ export default {
                                     // check if all stations are already loaded and if not fix them in
 
                                     ride.Fahrtverlauf.forEach(station => {
-                                        if(typeof transportMap.getStation(station.VAGKennung) === 'undefined'){
+                                        if (typeof transportMap.getStation(station.VAGKennung) === 'undefined') {
                                             console.log(station);
                                             transportMap.addStation(new Station(station.Haltestellenname, station.VAGKennung, station.VGNKennung, station.Longitude, station.Latitude, 'Bus'))
                                         }

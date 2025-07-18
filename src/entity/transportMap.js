@@ -1,6 +1,7 @@
 
 import { Layer } from "leaflet";
 import Station from "./station";
+import { Suspense } from "vue";
 
 export default class TransportMap{
 
@@ -8,9 +9,15 @@ export default class TransportMap{
     #stations = [];
 
     #map;
+    #busStations;
+    #tramStations;
+    #subwayStations;
 
-    constructor(map){
+    constructor(map, busStations, tramStations, subwayStations){
         this.#map = map;
+        this.#busStations = busStations;
+        this.#tramStations = tramStations;
+        this.#subwayStations = subwayStations;
     }
 
 
@@ -86,41 +93,41 @@ export default class TransportMap{
         return this.#stations.filter(s => {
             if(typeof s.transportType === 'undefined') return false;
 
-            return s.transportType.includes("Tram") && !s.transportType.includes("UBahn");
+            return s.transportType.includes("Tram") //&& !s.transportType.includes("UBahn");
         })
     }
 
     #getBusStations(){
         return this.#stations.filter(s => {
             if(typeof s.transportType === 'undefined') return false;
-            return s.transportType.includes("Bus") && !s.transportType.includes("UBahn") && !s.transportType.includes("Tram");
+            return s.transportType.includes("Bus") //&& !s.transportType.includes("UBahn") && !s.transportType.includes("Tram");
         })
     }
 
 
     drawUbahnStations(){
         this.#getUbahnStations().forEach(station => {
-            L.circle([station.latitude, station.longitude], {radius: 100, color: "#000000", weight: 3, opacity: 1, fillColor: '#FFFFFF', fillOpacity: 1, pane: 'stationPane'})
+            L.circle([station.latitude, station.longitude], {radius: 100, color: "#000000", weight: 3, opacity: 1, fillColor: '#FFFFFF', fillOpacity: 1, pane: 'subwayStationPane'})
                 .bindPopup(station.name + "  -  " + station.transportType)
-                .addTo(this.#map)
+                .addTo(this.#subwayStations)
                             
         });
     }
 
     drawTramStations(){
         this.#getTramStations().forEach(station => {
-            L.circle([station.latitude, station.longitude], {radius: 50, color: "#000000", weight: 3, opacity: 1, fillColor: '#FFBBBB', fillOpacity: 1, pane: 'stationPane'})
+            L.circle([station.latitude, station.longitude], {radius: 50, color: "#000000", weight: 3, opacity: 1, fillColor: '#e7c888', fillOpacity: 1, pane: 'tramStationPane'})
                 .bindPopup(station.name + "  -  " + station.transportType)
-                .addTo(this.#map)
+                .addTo(this.#tramStations)
                             
         });
     }
 
     drawBusStations(){
         this.#getBusStations().forEach(station => {
-            L.circle([station.latitude, station.longitude], {radius: 30, color: "#000000", weight: 3, opacity: 1, fillColor: '#BBFFBB', fillOpacity: 1, pane: 'stationPane'})
+            L.circle([station.latitude, station.longitude], {radius: 30, color: "#000000", weight: 3, opacity: 1, fillColor: '#BBFFBB', fillOpacity: 1, pane: 'busStationPane'})
                 .bindPopup(station.name + "  -  " + station.transportType)
-                .addTo(this.#map)
+                .addTo(this.#busStations)
                             
         });
     }
@@ -137,6 +144,7 @@ export default class TransportMap{
             return s.VAG_Name === station_VAG;
         })
         marker.setLatLng([station.latitude, station.longitude]);
+        marker.redraw();
     }
 
     /**
@@ -165,6 +173,7 @@ export default class TransportMap{
         let longitude = firstStation.longitude + longitudeDifference * distance;
 
         marker.setLatLng([latitude, longitude]);
+        marker.redraw();
     }
 
 

@@ -34,14 +34,6 @@ export default class Transport{
             
             if(i !== 0 && ankunftszeit > currentTime){
                 // zwischen dieser und letzter Station
-                if(typeof this.#allStations[i-1] === 'undefined'){
-                    console.log("last station undefined error")
-                    console.log(this.line + " - " + this.direction)
-                    console.log(station)
-                    console.log(i)
-                    console.log(this.#allStations)
-                    console.log(this)
-                }
                 let departure = new Date(this.#allStations[i-1].actualDeparture).getTime();
                 let arrival = new Date(station.actualArrival).getTime();
                 let distance = (currentTime - departure) / (arrival - departure);

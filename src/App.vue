@@ -57,4 +57,8 @@ body{
   height: 95%
 }
 
+.header{
+  font-family: sans-serif;
+}
+
 </style>
