@@ -1,0 +1,26 @@
+name: Deploy SubMap
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  deploy:
+    env:
+      DEPLOYMENT_DIR: /etc/nginx/html/transmap
+    
+    runs-on: self-hosted
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: build files
+      run: npm run build
+
+    - name: Copy files to NGINX
+      run: |
+        rm -r  $DEPLOYMENT_DIR || true
+        mkdir -p $DEPLOYMENT_DIR
+        cp -r dist/* $DEPLOYMENT_DIR
+        sudo systemctl reload nginx
