@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <h1 class="header">U-Bahn Map Nürnberg</h1>
+    <h1 class="header">U-Bahn Map Nürnberg (text that definitly belongs here)</h1>
     
     <div class="mapContainer">
       <LeafletMap class="map" ref="myMap"/>
