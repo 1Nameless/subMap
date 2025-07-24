@@ -42,6 +42,7 @@ body{
 
 .header{
   flex: 0 1 auto;
+  margin-left: 2%;
 }
 
 .map{
