@@ -261,10 +261,7 @@ export default {
             //let path = L.polyline(latlngs, {color: color, opacity: 0, weight: 20, fill: false, fillColor: color, interactive: false}).addTo(map);
             let path = L.corridor(latlngs, { color: color, opacity: 0, corridor: 15, fill: false, fillColor: color, interactive: false, pane: 'routePane' }).addTo(map);
             c.on('popupopen', function (e) {
-                console.log("BUS:")
-                console.log(c)
                 path.setStyle({ opacity: 1 });
-                console.log(c)
             });
 
             c.on('popupclose', function (e) {
@@ -368,7 +365,6 @@ export default {
 
                                     ride.Fahrtverlauf.forEach(station => {
                                         if (typeof transportMap.getStationVgn(station.VGNKennung) === 'undefined') {
-                                            console.log(station);
                                             transportMap.addStation(new Station(station.Haltestellenname, station.VAGKennung, station.VGNKennung, station.Longitude, station.Latitude, 'Bus'))
                                         }
                                     })
