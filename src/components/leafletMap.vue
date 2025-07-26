@@ -111,7 +111,7 @@ export default {
             }
 
 
-            let layerControl = L.control.layers({ "humanMap": baseMap }, transportOverlay, { hideSingleBase: true }).addTo(map);
+            let layerControl = L.control.layers({ "humanMap": baseMap }, transportOverlay, { hideSingleBase: true, collapsed: false }).addTo(map);
 
             trainPane.style.zIndex = 1100;
             busStationPane.style.zIndex = 1200;
@@ -181,7 +181,6 @@ export default {
                         autoPan: false
                     }
                 )
-            subways.addLayer(c);
 
             let stations = train.allStations;
             var latlngs = [];
@@ -212,7 +211,6 @@ export default {
                         autoPan: false
                     }
                 )
-            trams.addLayer(c);
 
             let stations = tram.allStations;
             var latlngs = [];
@@ -244,10 +242,6 @@ export default {
                     }
                 )
 
-            buses.addLayer(c);
-
-
-
             let stations = bus.allStations;
             var latlngs = [];
 
@@ -278,18 +272,18 @@ export default {
 
                     if (train.transportMode === 'UBahn') {
                         let marker = getTrainMarker(train);
-                        marker.addTo(map);
+                        marker.addTo(subways);
                         train.marker = marker;
 
                     }
                     else if (train.transportMode === 'Tram') {
                         let marker = getTramMarker(train);
-                        marker.addTo(map);
+                        marker.addTo(trams);
                         train.marker = marker;
                     }
                     else if (train.transportMode === 'Bus') {
                         let marker = getBusMarker(train);
-                        marker.addTo(map);
+                        marker.addTo(buses);
                         train.marker = marker;
                     }
 
