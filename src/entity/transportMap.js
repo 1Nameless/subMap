@@ -21,9 +21,9 @@ export default class TransportMap{
     }
 
 
-    getLatLngForStation_VAG(VAG_name){
+    getLatLngForStation_VGN(VGN_name){
         for (let i = 0; i < this.#stations.length; i++) {
-            if(this.#stations[i].VAG_Name === VAG_name){
+            if(this.#stations[i].VGN_Name === VGN_name){
                 return [this.#stations[i].latitude, this.#stations[i].longitude];
             }
         }
@@ -35,21 +35,39 @@ export default class TransportMap{
             if(this.#stations[i].VAG_Name === VAG_name){
                 return this.#stations[i];
             }
+        }
+        return undefined;
+    }
 
-        
+    getStationVgn(VgnName){
+        for (let i = 0; i < this.#stations.length; i++) {
+            
+            if(this.#stations[i].VGN_Name === VgnName){
+                return this.#stations[i];
+            }
         }
         return undefined;
     }
 
     addStation(station){
+
+        //check if station already exists
+        let oldStation = this.getStationVgn(station.VGN_Name);
+        if(typeof oldStation !== 'undefined') {
+            // station already exists
+            oldStation.latitude = station.latitude;
+            oldStation.Longitude = station.longitude
+            oldStation.transportType = station.transportType;
+            return;
+        }
+
         this.#stations.push(station);
     }
 
 
     loadStations() {
         //get Haltestelle by name (% as wildcard for everything) ("%" gets encoded as "%25")
-        const url = "https://start.vag.de/dm/api/v1/haltestellen/VAG?name=%25"
-
+        const url = "https://start.vag.de/dm/api/v1/haltestellen/VAG?name=%25"                      
 
         fetch(url)
                 .then(response => {
@@ -64,7 +82,7 @@ export default class TransportMap{
                 .then(stops => {
                     stops.forEach(stop => {
 
-                        this.#stations.push(new Station(
+                        this.addStation(new Station(
                             stop['Haltestellenname'],
                             stop['VAGKennung'],
                             stop['VGNKennung'],
@@ -108,7 +126,7 @@ export default class TransportMap{
     drawUbahnStations(){
         this.#getUbahnStations().forEach(station => {
             L.circle([station.latitude, station.longitude], {radius: 100, color: "#000000", weight: 3, opacity: 1, fillColor: '#FFFFFF', fillOpacity: 1, pane: 'subwayStationPane'})
-                .bindPopup(station.name + "  -  " + station.transportType)
+                .bindPopup(station.name)
                 .addTo(this.#subwayStations)
                             
         });
@@ -117,7 +135,7 @@ export default class TransportMap{
     drawTramStations(){
         this.#getTramStations().forEach(station => {
             L.circle([station.latitude, station.longitude], {radius: 50, color: "#000000", weight: 3, opacity: 1, fillColor: '#e7c888', fillOpacity: 1, pane: 'tramStationPane'})
-                .bindPopup(station.name + "  -  " + station.transportType)
+                .bindPopup(station.name)
                 .addTo(this.#tramStations)
                             
         });
@@ -126,7 +144,7 @@ export default class TransportMap{
     drawBusStations(){
         this.#getBusStations().forEach(station => {
             L.circle([station.latitude, station.longitude], {radius: 30, color: "#000000", weight: 3, opacity: 1, fillColor: '#BBFFBB', fillOpacity: 1, pane: 'busStationPane'})
-                .bindPopup(station.name + "  -  " + station.transportType)
+                .bindPopup(station.name)
                 .addTo(this.#busStations)
                             
         });
@@ -136,38 +154,29 @@ export default class TransportMap{
 
     /**
     * 
-    * @param {String} station_VAG VAG short for station
+    * @param {String} station_VGN VGN short for station
     * @param {String} transportType UBahn | Tram | Bus
     */
-    drawTransportAtStation(station_VAG, marker, transportType){
-        let station = this.#stations.find((s) => {
-            return s.VAG_Name === station_VAG;
-        })
+    drawTransportAtStation(station_VGN, marker){
+        let station = this.getStationVgn(station_VGN);
         marker.setLatLng([station.latitude, station.longitude]);
         marker.redraw();
     }
 
     /**
      * 
-     * @param {String} first_station_VAG 
-     * @param {String} second_station_VAG 
+     * @param {String} first_station_VGN
+     * @param {String} second_station_VGN
      * @param {number} distance 0-1
      * @param {Layer} marker 
      * @param {String} transportType UBahn | Tram | Bus
      */
-    drawTransportBetweenStations(first_station_VAG, second_station_VAG, distance,  marker, transportType){
-        let firstStation = this.#stations.filter((s) => {
-            return s.VAG_Name === first_station_VAG;
-        })[0];
-
-        let secondStation = this.#stations.filter((s) => {
-            return s.VAG_Name === second_station_VAG;
-        })[0];
-
+    drawTransportBetweenStations(first_station_VGN, second_station_VGN, distance,  marker){
+        let firstStation = this.getStationVgn(first_station_VGN);
+        let secondStation = this.getStationVgn(second_station_VGN);
 
         let latitudeDifference = secondStation.latitude - firstStation.latitude;
         let latitude = firstStation.latitude + latitudeDifference * distance;
-
 
         let longitudeDifference = secondStation.longitude - firstStation.longitude;
         let longitude = firstStation.longitude + longitudeDifference * distance;

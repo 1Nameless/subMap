@@ -38,12 +38,12 @@ export default class Transport{
                 let arrival = new Date(station.actualArrival).getTime();
                 let distance = (currentTime - departure) / (arrival - departure);
 
-                this.#transportMap.drawTransportBetweenStations(this.#allStations[i-1].VAG_StationName, station.VAG_StationName, distance, this.marker)
+                this.#transportMap.drawTransportBetweenStations(this.#allStations[i-1].VGN_StationName, station.VGN_StationName, distance, this.marker)
                 return;
             }
             else if(i === this.#allStations.length - 1 || abfahrtszeit >= currentTime){
                 //at station
-                this.#transportMap.drawTransportAtStation(station.VAG_StationName, this.marker);
+                this.#transportMap.drawTransportAtStation(station.VGN_StationName, this.marker);
                 return;
             }
 

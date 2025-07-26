@@ -29,16 +29,32 @@ export default class Station{
         return this.#latitude;
     }
 
+    set latitude(latitude){
+        this.#latitude = latitude;
+    }
+
     get longitude(){
         return this.#longitude;
+    }
+
+    set longitude(longitude){
+        this.#longitude = longitude;
     }
 
     get transportType(){
         return this.#transportType;
     }
 
+    set transportType(transportType){
+        this.#transportType = transportType;
+    }
+
     get VAG_Name(){
         return this.#VAG_Name;
+    }
+
+    get VGN_Name(){
+        return this.#VGN_Name;
     }
 
 }

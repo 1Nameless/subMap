@@ -11,7 +11,7 @@ import Transport from '../entity/transport'
 import '../external/leaflet-corridor'
 import TransportMap from '../entity/transportMap'
 import Station from '../entity/station'
-import TransportStop from '../entity/transportStop'
+import TransportStop from '../entity/transportStop.js'
 
 
 export default {
@@ -187,7 +187,7 @@ export default {
             var latlngs = [];
 
             stations.forEach(station => {
-                latlngs.push(transportMap.getLatLngForStation_VAG(station.VAG_StationName));
+                latlngs.push(transportMap.getLatLngForStation_VGN(station.VGN_StationName));
             });
 
             //let path = L.polyline(latlngs, {color: color, opacity: 0, weight: 20, fill: false, fillColor: color, interactive: false}).addTo(map);
@@ -218,7 +218,7 @@ export default {
             var latlngs = [];
 
             stations.forEach(station => {
-                latlngs.push(transportMap.getLatLngForStation_VAG(station.VAG_StationName));
+                latlngs.push(transportMap.getLatLngForStation_VGN(station.VGN_StationName));
             });
 
             //let path = L.polyline(latlngs, {color: color, opacity: 0, weight: 20, fill: false, fillColor: color, interactive: false}).addTo(map);
@@ -252,7 +252,7 @@ export default {
             var latlngs = [];
 
             stations.forEach(station => {
-                let cords = transportMap.getLatLngForStation_VAG(station.VAG_StationName);
+                let cords = transportMap.getLatLngForStation_VGN(station.VGN_StationName);
                 if (typeof cords !== 'undefined') {
                     latlngs.push(cords);
                 }
@@ -367,7 +367,7 @@ export default {
                                     // check if all stations are already loaded and if not fix them in
 
                                     ride.Fahrtverlauf.forEach(station => {
-                                        if (typeof transportMap.getStation(station.VAGKennung) === 'undefined') {
+                                        if (typeof transportMap.getStationVgn(station.VGNKennung) === 'undefined') {
                                             console.log(station);
                                             transportMap.addStation(new Station(station.Haltestellenname, station.VAGKennung, station.VGNKennung, station.Longitude, station.Latitude, 'Bus'))
                                         }
