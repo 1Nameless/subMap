@@ -11,7 +11,7 @@ import Transport from '../entity/transport'
 import '../external/leaflet-corridor'
 import TransportMap from '../entity/transportMap'
 import Station from '../entity/station'
-import TransportStop from '../entity/transportStop'
+import TransportStop from '../entity/transportStop.js'
 
 
 export default {
@@ -111,7 +111,7 @@ export default {
             }
 
 
-            let layerControl = L.control.layers({ "humanMap": baseMap }, transportOverlay, { hideSingleBase: true }).addTo(map);
+            let layerControl = L.control.layers({ "humanMap": baseMap }, transportOverlay, { hideSingleBase: true, collapsed: false }).addTo(map);
 
             trainPane.style.zIndex = 1100;
             busStationPane.style.zIndex = 1200;
@@ -181,13 +181,12 @@ export default {
                         autoPan: false
                     }
                 )
-            subways.addLayer(c);
 
             let stations = train.allStations;
             var latlngs = [];
 
             stations.forEach(station => {
-                latlngs.push(transportMap.getLatLngForStation_VAG(station.VAG_StationName));
+                latlngs.push(transportMap.getLatLngForStation_VGN(station.VGN_StationName));
             });
 
             //let path = L.polyline(latlngs, {color: color, opacity: 0, weight: 20, fill: false, fillColor: color, interactive: false}).addTo(map);
@@ -212,13 +211,12 @@ export default {
                         autoPan: false
                     }
                 )
-            trams.addLayer(c);
 
             let stations = tram.allStations;
             var latlngs = [];
 
             stations.forEach(station => {
-                latlngs.push(transportMap.getLatLngForStation_VAG(station.VAG_StationName));
+                latlngs.push(transportMap.getLatLngForStation_VGN(station.VGN_StationName));
             });
 
             //let path = L.polyline(latlngs, {color: color, opacity: 0, weight: 20, fill: false, fillColor: color, interactive: false}).addTo(map);
@@ -244,15 +242,11 @@ export default {
                     }
                 )
 
-            buses.addLayer(c);
-
-
-
             let stations = bus.allStations;
             var latlngs = [];
 
             stations.forEach(station => {
-                let cords = transportMap.getLatLngForStation_VAG(station.VAG_StationName);
+                let cords = transportMap.getLatLngForStation_VGN(station.VGN_StationName);
                 if (typeof cords !== 'undefined') {
                     latlngs.push(cords);
                 }
@@ -261,10 +255,7 @@ export default {
             //let path = L.polyline(latlngs, {color: color, opacity: 0, weight: 20, fill: false, fillColor: color, interactive: false}).addTo(map);
             let path = L.corridor(latlngs, { color: color, opacity: 0, corridor: 15, fill: false, fillColor: color, interactive: false, pane: 'routePane' }).addTo(map);
             c.on('popupopen', function (e) {
-                console.log("BUS:")
-                console.log(c)
                 path.setStyle({ opacity: 1 });
-                console.log(c)
             });
 
             c.on('popupclose', function (e) {
@@ -281,18 +272,18 @@ export default {
 
                     if (train.transportMode === 'UBahn') {
                         let marker = getTrainMarker(train);
-                        marker.addTo(map);
+                        marker.addTo(subways);
                         train.marker = marker;
 
                     }
                     else if (train.transportMode === 'Tram') {
                         let marker = getTramMarker(train);
-                        marker.addTo(map);
+                        marker.addTo(trams);
                         train.marker = marker;
                     }
                     else if (train.transportMode === 'Bus') {
                         let marker = getBusMarker(train);
-                        marker.addTo(map);
+                        marker.addTo(buses);
                         train.marker = marker;
                     }
 
@@ -367,8 +358,7 @@ export default {
                                     // check if all stations are already loaded and if not fix them in
 
                                     ride.Fahrtverlauf.forEach(station => {
-                                        if (typeof transportMap.getStation(station.VAGKennung) === 'undefined') {
-                                            console.log(station);
+                                        if (typeof transportMap.getStationVgn(station.VGNKennung) === 'undefined') {
                                             transportMap.addStation(new Station(station.Haltestellenname, station.VAGKennung, station.VGNKennung, station.Longitude, station.Latitude, 'Bus'))
                                         }
                                     })

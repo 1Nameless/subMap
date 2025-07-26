@@ -4,6 +4,7 @@
 export default class TransportStop{
 
     VAG_StationName;
+    VGN_StationName;
     #plannedArrival
     #actualArrival
     #plannedDeparture
@@ -12,6 +13,7 @@ export default class TransportStop{
 
     fromJson(json){
         this.VAG_StationName = json.VAGKennung;
+        this.VGN_StationName = json.VGNKennung;
         this.#plannedArrival = json.AnkunftszeitSoll;
         this.#actualArrival = json.AnkunftszeitIst;
         this.#plannedDeparture = json.AbfahrtszeitSoll;
