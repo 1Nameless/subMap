@@ -142,15 +142,6 @@ export default {
         })
 
 
-        let busVisible = true;
-
-
-        function toggleBus() {
-
-            busVisible = !busVisible;
-        }
-
-
         /*
             transportNumber
             stations
@@ -189,7 +180,6 @@ export default {
                 latlngs.push(transportMap.getLatLngForStation_VGN(station.VGN_StationName));
             });
 
-            //let path = L.polyline(latlngs, {color: color, opacity: 0, weight: 20, fill: false, fillColor: color, interactive: false}).addTo(map);
             let path = L.corridor(latlngs, { color: color, opacity: 0, corridor: 30, fill: false, fillColor: color, interactive: false, pane: 'routePane' }).addTo(map);
             c.on('popupopen', function (e) {
                 path.setStyle({ opacity: 1 })
@@ -252,7 +242,6 @@ export default {
                 }
             });
 
-            //let path = L.polyline(latlngs, {color: color, opacity: 0, weight: 20, fill: false, fillColor: color, interactive: false}).addTo(map);
             let path = L.corridor(latlngs, { color: color, opacity: 0, corridor: 15, fill: false, fillColor: color, interactive: false, pane: 'routePane' }).addTo(map);
             c.on('popupopen', function (e) {
                 path.setStyle({ opacity: 1 });
@@ -289,23 +278,7 @@ export default {
 
                 }
 
-                if (train.transportMode === "Bus" && busVisible === true) {
-                    //train.marker.setStyle({ opacity: 1, fillOpacity: 0.2, interactive: false })
-                    train.drawOnMap();
-                }
-                else if (train.transportMode === "Tram") {
-                    //train.marker.setStyle({ opacity: 1, fillOpacity: 0.2, interactive: true })
-                    train.drawOnMap();
-                }
-                else if (train.transportMode === "UBahn") {
-                    //train.marker.setStyle({ opacity: 1, fillOpacity: 0.2, interactive: true })
-                    train.drawOnMap();
-                }
-                else {
-                    //train.marker.setStyle({ opacity: 0, fillOpacity: 0, interactive: false});
-                    //train.marker.redraw();
-                    //train.marker.closePopup();
-                }
+                train.drawOnMap();
 
             })
         }
@@ -389,8 +362,7 @@ export default {
 
         return {
             mapContainer,
-            setMarker,
-            toggleBus
+            setMarker
         }
     }
 }

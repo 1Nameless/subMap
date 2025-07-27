@@ -5,10 +5,10 @@ export default class TransportStop{
 
     VAG_StationName;
     VGN_StationName;
-    #plannedArrival
-    #actualArrival
-    #plannedDeparture
-    #actualDeparture
+    #plannedArrival;
+    #actualArrival;
+    #plannedDeparture;
+    #actualDeparture;
 
 
     fromJson(json){

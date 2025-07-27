@@ -5,7 +5,6 @@ import { Suspense } from "vue";
 
 export default class TransportMap{
 
-    #trains = [];
     #stations = [];
 
     #map;
@@ -77,7 +76,7 @@ export default class TransportMap{
                     return response.json();
                 })
                 .then(data => {
-                    return data["Haltestellen"]
+                    return data["Haltestellen"];
                 })
                 .then(stops => {
                     stops.forEach(stop => {
@@ -111,14 +110,14 @@ export default class TransportMap{
         return this.#stations.filter(s => {
             if(typeof s.transportType === 'undefined') return false;
 
-            return s.transportType.includes("Tram") //&& !s.transportType.includes("UBahn");
+            return s.transportType.includes("Tram");
         })
     }
 
     #getBusStations(){
         return this.#stations.filter(s => {
             if(typeof s.transportType === 'undefined') return false;
-            return s.transportType.includes("Bus") //&& !s.transportType.includes("UBahn") && !s.transportType.includes("Tram");
+            return s.transportType.includes("Bus");
         })
     }
 
@@ -127,8 +126,7 @@ export default class TransportMap{
         this.#getUbahnStations().forEach(station => {
             L.circle([station.latitude, station.longitude], {radius: 100, color: "#000000", weight: 3, opacity: 1, fillColor: '#FFFFFF', fillOpacity: 1, pane: 'subwayStationPane'})
                 .bindPopup(station.name)
-                .addTo(this.#subwayStations)
-                            
+                .addTo(this.#subwayStations);
         });
     }
 
@@ -136,8 +134,7 @@ export default class TransportMap{
         this.#getTramStations().forEach(station => {
             L.circle([station.latitude, station.longitude], {radius: 50, color: "#000000", weight: 3, opacity: 1, fillColor: '#e7c888', fillOpacity: 1, pane: 'tramStationPane'})
                 .bindPopup(station.name)
-                .addTo(this.#tramStations)
-                            
+                .addTo(this.#tramStations);
         });
     }
 
@@ -145,8 +142,7 @@ export default class TransportMap{
         this.#getBusStations().forEach(station => {
             L.circle([station.latitude, station.longitude], {radius: 30, color: "#000000", weight: 3, opacity: 1, fillColor: '#BBFFBB', fillOpacity: 1, pane: 'busStationPane'})
                 .bindPopup(station.name)
-                .addTo(this.#busStations)
-                            
+                .addTo(this.#busStations);
         });
     }
 
@@ -189,13 +185,10 @@ export default class TransportMap{
     drawAllStations(){
 
         this.#stations.forEach(station => {
-            
-            if(typeof station.latitude === 'undefined'){
-            }
 
             L.circle([station.latitude, station.longitude], {radius: 20, color: "#000000", weight: 3, opacity: 1, fillColor: '#FFFFFF', fillOpacity: 1, pane: 'stationPane'})
                 .bindPopup(station.name + "  -  " + station.transportType)
-                .addTo(this.#map)
+                .addTo(this.#map);
                             
         });
 
