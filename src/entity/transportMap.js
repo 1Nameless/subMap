@@ -1,7 +1,6 @@
 
 import { Layer } from "leaflet";
 import Station from "./station";
-import { Suspense } from "vue";
 
 export default class TransportMap{
 
