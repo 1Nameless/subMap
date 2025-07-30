@@ -28,6 +28,7 @@ export default {
         let tramStationPane;
         let subwayStationPane;
         let routePane;
+        let gpsPane;
         let popupPane;
 
         /**
@@ -97,6 +98,7 @@ export default {
             busStationPane = map.createPane('busStationPane');
             tramStationPane = map.createPane('tramStationPane');
             subwayStationPane = map.createPane('subwayStationPane');
+            gpsPane = map.createPane('gpsPane');
             popupPane = map.createPane('popupPane'); //popupPane already exists by default
 
             busNetwork.addTo(map);
@@ -113,11 +115,38 @@ export default {
 
             let layerControl = L.control.layers({ "humanMap": baseMap }, transportOverlay, { hideSingleBase: true, collapsed: false }).addTo(map);
 
+
+            // locate user
+            let userMarker = L.circle([0,0], 10, {opacity: 0, fillOpacity: 0, pane: 'gpsPane'});
+            let userMarkerAccuracy = L.circle([0,0], 20, {opacity: 0, fillOpacity: 0, pane: 'gpsPane'}).addTo(map);
+            userMarker.addTo(map);
+            map.locate({watch: true, setView: true});
+            map.on('locationfound', (ev) => {
+                console.log("location found, ac: " + ev.accuracy);
+
+                userMarker.setStyle({opacity: 1, fillOpacity: 1});
+                userMarker.setLatLng(ev.latlng);
+
+                userMarkerAccuracy.setStyle({fillOpacity: 0.2});
+                userMarkerAccuracy.setLatLng(ev.latlng);
+                userMarkerAccuracy.setRadius(ev.accuracy);
+
+                console.log(userMarker);
+
+            })
+
+            map.on('locationerror', (ev) => {
+                userMarker.setStyle({opacity: 0, fillOpacity: 0});
+                userMarkerAccuracy.setStyle({fillOpacity: 0});
+            })
+
+
             trainPane.style.zIndex = 1100;
             busStationPane.style.zIndex = 1200;
             tramStationPane.style.zIndex = 1210;
             subwayStationPane.style.zIndex = 1220;
             routePane.style.zIndex = 1000;
+            gpsPane.style.zIndex = 1500;
             popupPane.style.zIndex = 2000;
 
             //getAllStops()
