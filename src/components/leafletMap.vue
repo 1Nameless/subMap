@@ -1,6 +1,7 @@
 <template>
     <div class="mapContainerInner">
         <div id="map" ref="mapContainer" class="map"></div>
+        <div class="gpsButton" @click="switchGps"> gps </div>
     </div>
 </template>
 
@@ -21,6 +22,10 @@ export default {
 
         let map;
         let transportMap;
+    
+        let userMarker;
+        let userMarkerAccuracy;
+        let isGpsOn = false;
 
 
         let trainPane;
@@ -117,13 +122,20 @@ export default {
 
 
             // locate user
-            let userMarker = L.circle([0,0], 10, {opacity: 0, fillOpacity: 0, pane: 'gpsPane'});
-            let userMarkerAccuracy = L.circle([0,0], 20, {opacity: 0, fillOpacity: 0, pane: 'gpsPane'}).addTo(map);
+            userMarker = L.circle([0,0], 10, {opacity: 0, fillOpacity: 0, pane: 'gpsPane'});
+            userMarkerAccuracy = L.circle([0,0], 20, {opacity: 0, fillOpacity: 0, pane: 'gpsPane'}).addTo(map);
             userMarker.addTo(map);
-            map.locate({watch: true, setView: true});
+            
             map.on('locationfound', (ev) => {
-                console.log("location found, ac: " + ev.accuracy);
+                userMarker.setStyle({opacity: 1, fillOpacity: 1});
+                userMarker.setLatLng(ev.latlng);
 
+                userMarkerAccuracy.setStyle({fillOpacity: 0.2});
+                userMarkerAccuracy.setLatLng(ev.latlng);
+                userMarkerAccuracy.setRadius(ev.accuracy);
+            })
+
+            map.once('locationfound', ev => {
                 userMarker.setStyle({opacity: 1, fillOpacity: 1});
                 userMarker.setLatLng(ev.latlng);
 
@@ -131,13 +143,13 @@ export default {
                 userMarkerAccuracy.setLatLng(ev.latlng);
                 userMarkerAccuracy.setRadius(ev.accuracy);
 
-                console.log(userMarker);
-
+                map.flyTo(userMarker.getLatLng(), 16, {duration: 1});
             })
 
             map.on('locationerror', (ev) => {
                 userMarker.setStyle({opacity: 0, fillOpacity: 0});
                 userMarkerAccuracy.setStyle({fillOpacity: 0});
+                isGpsOn = false;
             })
 
 
@@ -170,6 +182,21 @@ export default {
 
         })
 
+
+        function switchGps(){
+
+            if(!isGpsOn){
+                map.locate({watch: true, setView: false, enableHighAccuracy: true});
+                isGpsOn = true;
+                return;
+            }
+
+            let userLatLng = userMarker.getLatLng();
+            if(userLatLng != [0,0]){
+                map.flyTo(userLatLng, 16, {duration: 1});
+            }
+            
+        }
 
         let busVisible = true;
 
@@ -218,7 +245,6 @@ export default {
                 latlngs.push(transportMap.getLatLngForStation_VGN(station.VGN_StationName));
             });
 
-            //let path = L.polyline(latlngs, {color: color, opacity: 0, weight: 20, fill: false, fillColor: color, interactive: false}).addTo(map);
             let path = L.corridor(latlngs, { color: color, opacity: 0, corridor: 30, fill: false, fillColor: color, interactive: false, pane: 'routePane' }).addTo(map);
             c.on('popupopen', function (e) {
                 path.setStyle({ opacity: 1 })
@@ -419,7 +445,8 @@ export default {
         return {
             mapContainer,
             setMarker,
-            toggleBus
+            toggleBus,
+            switchGps
         }
     }
 }
@@ -428,6 +455,7 @@ export default {
 <style scoped>
 .mapContainerInner {
     position: relative;
+    display: grid;
     height: 95%;
     width: 95%;
     flex: 1 1 auto;
@@ -439,6 +467,8 @@ export default {
 .map {
     border: 1px solid #ccc;
     border-radius: 8px;
+    grid-column-start: 1;
+    grid-row-start: 1;
 }
 
 .buttons {
@@ -447,4 +477,19 @@ export default {
     right: 0;
     z-index: 1000;
 }
+
+.gpsButton {
+    background-color: #ccc;
+    min-width: 50px;
+    max-width: 3%;
+    aspect-ratio: 1;
+    position: relative;
+    z-index: 10000;
+    grid-column-start: 1;
+    grid-row-start: 1;
+    left: 95%;
+    top: 85%;
+}
+
+
 </style>
