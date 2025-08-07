@@ -1,6 +1,9 @@
 <template>
     <div class="mapContainerInner">
         <div id="map" ref="mapContainer" class="map"></div>
+        <div class="gpsButton" @click="switchGps">
+            <img class="gpsImage" src="../../assets/location.svg" alt="location button"></img>
+        </div>
     </div>
 </template>
 
@@ -21,6 +24,10 @@ export default {
 
         let map;
         let transportMap;
+    
+        let userMarker;
+        let userMarkerAccuracy;
+        let isGpsOn = false;
 
 
         let trainPane;
@@ -28,6 +35,7 @@ export default {
         let tramStationPane;
         let subwayStationPane;
         let routePane;
+        let gpsPane;
         let popupPane;
 
         /**
@@ -97,6 +105,7 @@ export default {
             busStationPane = map.createPane('busStationPane');
             tramStationPane = map.createPane('tramStationPane');
             subwayStationPane = map.createPane('subwayStationPane');
+            gpsPane = map.createPane('gpsPane');
             popupPane = map.createPane('popupPane'); //popupPane already exists by default
 
             busNetwork.addTo(map);
@@ -113,11 +122,34 @@ export default {
 
             let layerControl = L.control.layers({ "humanMap": baseMap }, transportOverlay, { hideSingleBase: true, collapsed: false }).addTo(map);
 
+
+            // locate user
+            userMarker = L.circle([0,0], 10, {opacity: 0, fillOpacity: 0, pane: 'gpsPane'});
+            userMarkerAccuracy = L.circle([0,0], 20, {opacity: 0, fillOpacity: 0, pane: 'gpsPane'}).addTo(map);
+            userMarker.addTo(map);
+            
+            map.on('locationfound', (ev) => {
+                setUserMarker(ev.latlng, ev.accuracy);
+            })
+
+            map.once('locationfound', ev => {
+                setUserMarker(ev.latlng, ev.accuracy);
+                map.flyTo(userMarker.getLatLng(), 16, {duration: 1});
+            })
+
+            map.on('locationerror', (ev) => {
+                userMarker.setStyle({opacity: 0, fillOpacity: 0});
+                userMarkerAccuracy.setStyle({fillOpacity: 0});
+                isGpsOn = false;
+            })
+
+
             trainPane.style.zIndex = 1100;
             busStationPane.style.zIndex = 1200;
             tramStationPane.style.zIndex = 1210;
             subwayStationPane.style.zIndex = 1220;
             routePane.style.zIndex = 1000;
+            gpsPane.style.zIndex = 1500;
             popupPane.style.zIndex = 2000;
 
             //getAllStops()
@@ -141,6 +173,39 @@ export default {
 
         })
 
+        function setUserMarker(latLng, accuracy){
+
+
+            // min 30
+            // max 1000
+            let accuracyRadius = accuracy;
+
+            if(accuracy < 30) accuracyRadius = 30;
+            if(accuracy > 1000) accuracyRadius = 1000;
+
+            userMarker.setStyle({opacity: 1, fillOpacity: 1});
+            userMarker.setLatLng(latLng);
+
+            userMarkerAccuracy.setStyle({fillOpacity: 0.2});
+            userMarkerAccuracy.setLatLng(latLng);
+            userMarkerAccuracy.setRadius(accuracyRadius);
+        }
+
+
+        function switchGps(){
+
+            if(!isGpsOn){
+                map.locate({watch: true, setView: false, enableHighAccuracy: true});
+                isGpsOn = true;
+                return;
+            }
+
+            let userLatLng = userMarker.getLatLng();
+            if(userLatLng['lat'] !== 0 && userLatLng['lng'] !== 0){
+                map.flyTo(userLatLng, 16, {duration: 1});
+            }
+            
+        }
 
         let busVisible = true;
 
@@ -189,7 +254,6 @@ export default {
                 latlngs.push(transportMap.getLatLngForStation_VGN(station.VGN_StationName));
             });
 
-            //let path = L.polyline(latlngs, {color: color, opacity: 0, weight: 20, fill: false, fillColor: color, interactive: false}).addTo(map);
             let path = L.corridor(latlngs, { color: color, opacity: 0, corridor: 30, fill: false, fillColor: color, interactive: false, pane: 'routePane' }).addTo(map);
             c.on('popupopen', function (e) {
                 path.setStyle({ opacity: 1 })
@@ -219,7 +283,6 @@ export default {
                 latlngs.push(transportMap.getLatLngForStation_VGN(station.VGN_StationName));
             });
 
-            //let path = L.polyline(latlngs, {color: color, opacity: 0, weight: 20, fill: false, fillColor: color, interactive: false}).addTo(map);
             let path = L.corridor(latlngs, { color: color, opacity: 0, corridor: 20, fill: false, fillColor: color, interactive: false, pane: 'routePane' }).addTo(map);
             c.on('popupopen', function (e) {
                 path.setStyle({ opacity: 1 })
@@ -390,7 +453,8 @@ export default {
         return {
             mapContainer,
             setMarker,
-            toggleBus
+            toggleBus,
+            switchGps
         }
     }
 }
@@ -399,6 +463,7 @@ export default {
 <style scoped>
 .mapContainerInner {
     position: relative;
+    display: grid;
     height: 95%;
     width: 95%;
     flex: 1 1 auto;
@@ -410,6 +475,8 @@ export default {
 .map {
     border: 1px solid #ccc;
     border-radius: 8px;
+    grid-column-start: 1;
+    grid-row-start: 1;
 }
 
 .buttons {
@@ -418,4 +485,36 @@ export default {
     right: 0;
     z-index: 1000;
 }
+
+.gpsButton {
+    background-color: #82b4ff;
+    min-width: 50px;
+    max-width: 3%;
+    aspect-ratio: 1;
+    position: relative;
+    z-index: 10000;
+    grid-column-start: 1;
+    grid-row-start: 1;
+    margin-left: auto;
+    margin-right: 2%;
+    margin-top: auto;
+    margin-bottom: 30px;
+    border-radius: 50%;
+    opacity: 80%;
+    cursor: pointer;
+}
+
+.gpsImage {
+    width: 80%;
+    margin-left: 10%;
+    margin-top: 10%;
+    color: green;
+    filter: invert(20%)
+}
+
+.gpsImage:hover {
+    filter: invert(0%);
+}
+
+
 </style>
