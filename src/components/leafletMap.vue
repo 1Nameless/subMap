@@ -1,7 +1,9 @@
 <template>
     <div class="mapContainerInner">
         <div id="map" ref="mapContainer" class="map"></div>
-        <div class="gpsButton" @click="switchGps"> gps </div>
+        <div class="gpsButton" @click="switchGps">
+            <img class="gpsImage" src="../../assets/location.svg" alt="location button"></img>
+        </div>
     </div>
 </template>
 
@@ -127,22 +129,11 @@ export default {
             userMarker.addTo(map);
             
             map.on('locationfound', (ev) => {
-                userMarker.setStyle({opacity: 1, fillOpacity: 1});
-                userMarker.setLatLng(ev.latlng);
-
-                userMarkerAccuracy.setStyle({fillOpacity: 0.2});
-                userMarkerAccuracy.setLatLng(ev.latlng);
-                userMarkerAccuracy.setRadius(ev.accuracy);
+                setUserMarker(ev.latlng, ev.accuracy);
             })
 
             map.once('locationfound', ev => {
-                userMarker.setStyle({opacity: 1, fillOpacity: 1});
-                userMarker.setLatLng(ev.latlng);
-
-                userMarkerAccuracy.setStyle({fillOpacity: 0.2});
-                userMarkerAccuracy.setLatLng(ev.latlng);
-                userMarkerAccuracy.setRadius(ev.accuracy);
-
+                setUserMarker(ev.latlng, ev.accuracy);
                 map.flyTo(userMarker.getLatLng(), 16, {duration: 1});
             })
 
@@ -182,6 +173,24 @@ export default {
 
         })
 
+        function setUserMarker(latLng, accuracy){
+
+
+            // min 30
+            // max 1000
+            let accuracyRadius = accuracy;
+
+            if(accuracy < 30) accuracyRadius = 30;
+            if(accuracy > 1000) accuracyRadius = 1000;
+
+            userMarker.setStyle({opacity: 1, fillOpacity: 1});
+            userMarker.setLatLng(latLng);
+
+            userMarkerAccuracy.setStyle({fillOpacity: 0.2});
+            userMarkerAccuracy.setLatLng(latLng);
+            userMarkerAccuracy.setRadius(accuracyRadius);
+        }
+
 
         function switchGps(){
 
@@ -192,7 +201,7 @@ export default {
             }
 
             let userLatLng = userMarker.getLatLng();
-            if(userLatLng != [0,0]){
+            if(userLatLng['lat'] !== 0 && userLatLng['lng'] !== 0){
                 map.flyTo(userLatLng, 16, {duration: 1});
             }
             
@@ -274,7 +283,6 @@ export default {
                 latlngs.push(transportMap.getLatLngForStation_VGN(station.VGN_StationName));
             });
 
-            //let path = L.polyline(latlngs, {color: color, opacity: 0, weight: 20, fill: false, fillColor: color, interactive: false}).addTo(map);
             let path = L.corridor(latlngs, { color: color, opacity: 0, corridor: 20, fill: false, fillColor: color, interactive: false, pane: 'routePane' }).addTo(map);
             c.on('popupopen', function (e) {
                 path.setStyle({ opacity: 1 })
@@ -479,7 +487,7 @@ export default {
 }
 
 .gpsButton {
-    background-color: #ccc;
+    background-color: #82b4ff;
     min-width: 50px;
     max-width: 3%;
     aspect-ratio: 1;
@@ -487,8 +495,25 @@ export default {
     z-index: 10000;
     grid-column-start: 1;
     grid-row-start: 1;
-    left: 95%;
-    top: 85%;
+    margin-left: auto;
+    margin-right: 2%;
+    margin-top: auto;
+    margin-bottom: 30px;
+    border-radius: 50%;
+    opacity: 80%;
+    cursor: pointer;
+}
+
+.gpsImage {
+    width: 80%;
+    margin-left: 10%;
+    margin-top: 10%;
+    color: green;
+    filter: invert(20%)
+}
+
+.gpsImage:hover {
+    filter: invert(0%);
 }
 
 
