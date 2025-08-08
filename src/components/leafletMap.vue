@@ -2,7 +2,7 @@
     <div class="mapContainerInner">
         <div id="map" ref="mapContainer" class="map"></div>
         <div class="gpsButton" @click="switchGps">
-            <img class="gpsImage" src="../../assets/location.svg" alt="location button"></img>
+            <img class="gpsImage" src="../assets/location.svg" alt="location button"></img>
         </div>
     </div>
 </template>
